@@ -219,7 +219,7 @@
                                     <li>Créez un nouveau projet</li>
                                     <li>Allez dans Settings → API</li>
                                     <li>Copiez l'URL et la clé anon key</li>
-                                    <li>Activez l'authentification par email</li>
+                                    <li>Exécutez le script SQL fourni</li>
                                 </ol>
                             </div>
                         </div>
@@ -228,10 +228,253 @@
                     <div class="bg-gray-900 rounded-lg p-4 mb-6">
                         <div class="flex items-center justify-between mb-3">
                             <h4 class="text-white font-medium">Script SQL à exécuter dans Supabase</h4>
-                            <button onclick="copyDatabaseScript()" class="text-blue-400 hover:text-blue-300 text-sm">
+                            <button type="button" onclick="copyDatabaseScript()" class="text-blue-400 hover:text-blue-300 text-sm">
                                 <i class="fas fa-copy mr-1"></i>Copier
                             </button>
                         </div>
+                        <div class="bg-black rounded p-3 text-green-400 text-sm font-mono overflow-x-auto max-h-64 overflow-y-auto" id="databaseScript">
+-- JustArchiv Database Schema
+-- Exécutez ce script dans l'éditeur SQL de Supabase
+
+-- Create profiles table
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID REFERENCES auth.users(id) PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    full_name TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    avatar_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create categories table
+CREATE TABLE IF NOT EXISTS categories (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    color TEXT DEFAULT '#3B82F6',
+    icon TEXT DEFAULT 'fas fa-folder',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id, name)
+);
+
+-- Create documents table
+CREATE TABLE IF NOT EXISTS documents (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT DEFAULT 0,
+    file_type TEXT NOT NULL,
+    mime_type TEXT,
+    tags TEXT[] DEFAULT '{}',
+    is_favorite BOOLEAN DEFAULT FALSE,
+    is_archived BOOLEAN DEFAULT FALSE,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create document_shares table for sharing functionality
+CREATE TABLE IF NOT EXISTS document_shares (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
+    shared_by UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    shared_with UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    share_token TEXT UNIQUE,
+    permissions TEXT DEFAULT 'read', -- 'read', 'write', 'admin'
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create activity_logs table
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    action TEXT NOT NULL, -- 'upload', 'download', 'delete', 'share', etc.
+    resource_type TEXT NOT NULL, -- 'document', 'category', etc.
+    resource_id UUID,
+    details JSONB DEFAULT '{}',
+    ip_address INET,
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE document_shares ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+
+-- Profiles policies
+CREATE POLICY "Users can view own profile" ON profiles
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON profiles
+    FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Categories policies
+CREATE POLICY "Users can view own categories" ON categories
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own categories" ON categories
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own categories" ON categories
+    FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own categories" ON categories
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Documents policies
+CREATE POLICY "Users can view own documents" ON documents
+    FOR SELECT USING (
+        auth.uid() = user_id OR
+        EXISTS (
+            SELECT 1 FROM document_shares 
+            WHERE document_id = documents.id 
+            AND (shared_with = auth.uid() OR share_token IS NOT NULL)
+            AND (expires_at IS NULL OR expires_at > NOW())
+        )
+    );
+
+CREATE POLICY "Users can create own documents" ON documents
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own documents" ON documents
+    FOR UPDATE USING (
+        auth.uid() = user_id OR
+        EXISTS (
+            SELECT 1 FROM document_shares 
+            WHERE document_id = documents.id 
+            AND shared_with = auth.uid()
+            AND permissions IN ('write', 'admin')
+            AND (expires_at IS NULL OR expires_at > NOW())
+        )
+    );
+
+CREATE POLICY "Users can delete own documents" ON documents
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Document shares policies
+CREATE POLICY "Users can view shares for their documents" ON document_shares
+    FOR SELECT USING (
+        auth.uid() = shared_by OR 
+        auth.uid() = shared_with OR
+        EXISTS (SELECT 1 FROM documents WHERE id = document_id AND user_id = auth.uid())
+    );
+
+CREATE POLICY "Users can create shares for their documents" ON document_shares
+    FOR INSERT WITH CHECK (
+        auth.uid() = shared_by AND
+        EXISTS (SELECT 1 FROM documents WHERE id = document_id AND user_id = auth.uid())
+    );
+
+CREATE POLICY "Users can update their shares" ON document_shares
+    FOR UPDATE USING (auth.uid() = shared_by);
+
+CREATE POLICY "Users can delete their shares" ON document_shares
+    FOR DELETE USING (auth.uid() = shared_by);
+
+-- Activity logs policies
+CREATE POLICY "Users can view own activity" ON activity_logs
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own activity" ON activity_logs
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents(user_id);
+CREATE INDEX IF NOT EXISTS idx_documents_category_id ON documents(category_id);
+CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_documents_tags ON documents USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
+CREATE INDEX IF NOT EXISTS idx_document_shares_document_id ON document_shares(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_shares_shared_with ON document_shares(shared_with);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at DESC);
+
+-- Create functions for automatic profile creation
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.profiles (id, email, full_name, first_name, last_name)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+        COALESCE(NEW.raw_user_meta_data->>'first_name', ''),
+        COALESCE(NEW.raw_user_meta_data->>'last_name', '')
+    );
+    
+    -- Create default categories
+    INSERT INTO public.categories (user_id, name, description, color, icon) VALUES
+    (NEW.id, 'Documents', 'Documents généraux', '#3B82F6', 'fas fa-file-alt'),
+    (NEW.id, 'Images', 'Photos et images', '#10B981', 'fas fa-image'),
+    (NEW.id, 'Factures', 'Factures et reçus', '#F59E0B', 'fas fa-receipt'),
+    (NEW.id, 'Contrats', 'Contrats et accords', '#8B5CF6', 'fas fa-handshake'),
+    (NEW.id, 'Personnel', 'Documents personnels', '#EF4444', 'fas fa-user');
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger for new user
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for updated_at
+CREATE TRIGGER profiles_updated_at BEFORE UPDATE ON profiles
+    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+CREATE TRIGGER categories_updated_at BEFORE UPDATE ON categories
+    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+CREATE TRIGGER documents_updated_at BEFORE UPDATE ON documents
+    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+-- Enable storage for file uploads
+INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies
+CREATE POLICY "Users can upload own documents" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can view own documents" ON storage.objects
+    FOR SELECT USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can update own documents" ON storage.objects
+    FOR UPDATE USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Users can delete own documents" ON storage.objects
+    FOR DELETE USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Confirmation message
+SELECT 'Base de données JustArchiv créée avec succès! 🎉' as status;
+                        </div>
+                    </div>
 
                     <div class="flex space-x-4">
                         <button type="button" onclick="testSupabaseConnection()" 
@@ -708,7 +951,7 @@
         let supabase = null;
         let supabaseConfig = {
             url: '',
-            anonKey: ''
+            key: ''
         };
 
         // Application state
@@ -723,25 +966,34 @@
 
         // Initialize application
         async function initApp() {
+            console.log('🚀 Initialisation de JustArchiv...');
+            
             // Load saved Supabase config
             const savedConfig = localStorage.getItem('supabase_config');
             if (savedConfig) {
-                supabaseConfig = JSON.parse(savedConfig);
-                await initSupabase();
-                
-                // Check if user is already logged in
-                if (supabase) {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session) {
-                        currentUser = session.user;
-                        showUserDashboard();
-                        return;
+                try {
+                    supabaseConfig = JSON.parse(savedConfig);
+                    console.log('📋 Configuration Supabase trouvée');
+                    
+                    const success = await initSupabase();
+                    if (success && supabase) {
+                        // Check if user is already logged in
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session) {
+                            currentUser = session.user;
+                            console.log('👤 Utilisateur déjà connecté:', currentUser.email);
+                            showUserDashboard();
+                            return;
+                        }
                     }
+                    
+                    showUserLogin();
+                } catch (error) {
+                    console.error('❌ Erreur lors du chargement de la config:', error);
+                    showSupabaseSetup();
                 }
-                
-                showUserLogin();
             } else {
-                // Show Supabase setup modal
+                console.log('⚙️ Première utilisation - Configuration requise');
                 showSupabaseSetup();
             }
             
@@ -756,24 +1008,36 @@
         }
 
         async function initSupabase() {
-            if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+            if (!supabaseConfig.url || !supabaseConfig.key) {
+                console.error('❌ Configuration Supabase manquante');
                 return false;
             }
 
             try {
-                supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+                console.log('🔌 Connexion à Supabase...', { 
+                    url: supabaseConfig.url, 
+                    keyLength: supabaseConfig.key.length 
+                });
                 
-                // Test connection
+                supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.key);
+                
+                // Test de connexion simple
                 const { data, error } = await supabase.from('profiles').select('count').limit(1);
                 
-                if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist, which is OK
-                    console.warn('Supabase connection warning:', error);
+                // Ces codes d'erreur sont acceptables (table n'existe pas encore)
+                const acceptableErrors = ['PGRST116', '42P01', 'PGRST301'];
+                
+                if (error && !acceptableErrors.includes(error.code)) {
+                    console.warn('⚠️ Avertissement Supabase:', error);
+                    // On continue quand même si c'est juste un avertissement
                 }
                 
+                console.log('✅ Supabase initialisé avec succès');
                 updateConnectionStatus('connected');
                 return true;
+                
             } catch (error) {
-                console.error('Erreur de connexion Supabase:', error);
+                console.error('❌ Erreur critique Supabase:', error);
                 updateConnectionStatus('disconnected');
                 return false;
             }
@@ -788,11 +1052,23 @@
         }
 
         async function testSupabaseConnection() {
-            const url = document.getElementById('setupSupabaseUrl').value;
-            const key = document.getElementById('setupSupabaseKey').value;
+            const url = document.getElementById('setupSupabaseUrl').value.trim();
+            const key = document.getElementById('setupSupabaseKey').value.trim();
             
             if (!url || !key) {
                 showToast('Veuillez remplir tous les champs', 'error');
+                return;
+            }
+
+            // Validation du format URL
+            if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
+                showToast('URL Supabase invalide. Format: https://xxx.supabase.co', 'error');
+                return;
+            }
+
+            // Validation de la clé
+            if (!key.startsWith('eyJ')) {
+                showToast('Clé Supabase invalide. Elle doit commencer par "eyJ"', 'error');
                 return;
             }
 
@@ -803,15 +1079,17 @@
                 const testClient = window.supabase.createClient(url, key);
                 const { data, error } = await testClient.from('profiles').select('count').limit(1);
                 
-                if (error && error.code !== 'PGRST116') {
-                    throw error;
+                // Même si la table n'existe pas, la connexion doit fonctionner
+                if (error && !['PGRST116', '42P01', 'PGRST301'].includes(error.code)) {
+                    throw new Error(`Connexion échouée: ${error.message}`);
                 }
                 
                 updateConnectionStatus('connected');
-                showToast('Connexion Supabase réussie !', 'success');
+                showToast('✅ Connexion Supabase réussie !', 'success');
             } catch (error) {
+                console.error('❌ Test de connexion échoué:', error);
                 updateConnectionStatus('disconnected');
-                showToast('Erreur de connexion: ' + error.message, 'error');
+                showToast('❌ Erreur: ' + error.message, 'error');
             }
         }
 
@@ -849,19 +1127,68 @@
         async function handleSupabaseSetup(e) {
             e.preventDefault();
             
-            const url = document.getElementById('setupSupabaseUrl').value;
-            const key = document.getElementById('setupSupabaseKey').value;
+            const url = document.getElementById('setupSupabaseUrl').value.trim();
+            const key = document.getElementById('setupSupabaseKey').value.trim();
             
-            supabaseConfig = { url, key };
-            localStorage.setItem('supabase_config', JSON.stringify(supabaseConfig));
+            // Validation des champs
+            if (!url || !key) {
+                showToast('Veuillez remplir tous les champs', 'error');
+                return;
+            }
             
-            const success = await initSupabase();
-            if (success) {
-                hideSupabaseSetup();
-                showUserLogin();
-                showToast('Configuration Supabase sauvegardée !', 'success');
-            } else {
-                showToast('Erreur de configuration Supabase', 'error');
+            // Validation du format URL
+            if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
+                showToast('URL Supabase invalide. Format attendu: https://xxx.supabase.co', 'error');
+                return;
+            }
+            
+            // Validation de la clé
+            if (!key.startsWith('eyJ')) {
+                showToast('Clé Supabase invalide. Elle doit commencer par "eyJ"', 'error');
+                return;
+            }
+            
+            updateConnectionStatus('connecting');
+            
+            try {
+                console.log('🔄 Test de la configuration Supabase...');
+                
+                // Test de connexion avant sauvegarde
+                const testClient = window.supabase.createClient(url, key);
+                
+                // Test simple de connexion
+                const { data, error } = await testClient.from('profiles').select('count').limit(1);
+                
+                // Même si la table n'existe pas, la connexion doit fonctionner
+                if (error && !['PGRST116', '42P01', 'PGRST301'].includes(error.code)) {
+                    throw new Error(`Connexion échouée: ${error.message}`);
+                }
+                
+                // Sauvegarde de la configuration
+                supabaseConfig = { url, key };
+                localStorage.setItem('supabase_config', JSON.stringify(supabaseConfig));
+                console.log('💾 Configuration sauvegardée');
+                
+                // Initialisation de Supabase
+                const success = await initSupabase();
+                if (success) {
+                    updateConnectionStatus('connected');
+                    hideSupabaseSetup();
+                    showUserLogin();
+                    showToast('✅ Configuration Supabase sauvegardée avec succès !', 'success');
+                } else {
+                    throw new Error('Échec de l\'initialisation Supabase');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur de configuration Supabase:', error);
+                updateConnectionStatus('disconnected');
+                showToast(`❌ Erreur: ${error.message}`, 'error');
+                
+                // Proposer le mode hors ligne en cas d'échec
+                setTimeout(() => {
+                    showToast('💡 Vous pouvez continuer en mode hors ligne si nécessaire', 'info');
+                }, 2000);
             }
         }
 
@@ -870,7 +1197,7 @@
             hideSupabaseSetup();
             showUserLogin();
             updateConnectionStatus('disconnected');
-            showToast('Mode hors ligne activé - données temporaires', 'warning');
+            showToast('📴 Mode hors ligne activé - données temporaires', 'warning');
         }
 
         // Authentication functions
@@ -885,6 +1212,8 @@
             
             try {
                 if (supabase && !isOfflineMode) {
+                    console.log('🔐 Tentative de connexion:', email);
+                    
                     const { data, error } = await supabase.auth.signInWithPassword({
                         email: email,
                         password: password
@@ -893,7 +1222,8 @@
                     if (error) throw error;
                     
                     currentUser = data.user;
-                    showToast('Connexion réussie !', 'success');
+                    console.log('✅ Connexion réussie:', currentUser.email);
+                    showToast('✅ Connexion réussie !', 'success');
                     showUserDashboard();
                 } else {
                     // Offline mode simulation
@@ -902,11 +1232,13 @@
                         email: email,
                         user_metadata: { full_name: 'Utilisateur Hors Ligne' }
                     };
-                    showToast('Connexion en mode hors ligne', 'warning');
+                    console.log('📴 Connexion en mode hors ligne');
+                    showToast('📴 Connexion en mode hors ligne', 'warning');
                     showUserDashboard();
                 }
             } catch (error) {
-                showToast('Erreur de connexion: ' + error.message, 'error');
+                console.error('❌ Erreur de connexion:', error);
+                showToast('❌ Erreur de connexion: ' + error.message, 'error');
             } finally {
                 loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Se connecter';
                 loginButton.disabled = false;
@@ -932,6 +1264,8 @@
             
             try {
                 if (supabase && !isOfflineMode) {
+                    console.log('📝 Création de compte:', email);
+                    
                     const { data, error } = await supabase.auth.signUp({
                         email: email,
                         password: password,
@@ -947,11 +1281,12 @@
                     if (error) throw error;
                     
                     if (data.user && !data.user.email_confirmed_at) {
-                        showToast('Vérifiez votre email pour confirmer votre compte', 'info');
+                        showToast('📧 Vérifiez votre email pour confirmer votre compte', 'info');
                         showLogin();
                     } else {
                         currentUser = data.user;
-                        showToast('Compte créé avec succès !', 'success');
+                        console.log('✅ Compte créé:', currentUser.email);
+                        showToast('✅ Compte créé avec succès !', 'success');
                         showUserDashboard();
                     }
                 } else {
@@ -961,11 +1296,13 @@
                         email: email,
                         user_metadata: { full_name: `${firstName} ${lastName}` }
                     };
-                    showToast('Compte créé en mode hors ligne', 'warning');
+                    console.log('📴 Compte créé en mode hors ligne');
+                    showToast('📴 Compte créé en mode hors ligne', 'warning');
                     showUserDashboard();
                 }
             } catch (error) {
-                showToast('Erreur lors de la création: ' + error.message, 'error');
+                console.error('❌ Erreur lors de la création:', error);
+                showToast('❌ Erreur lors de la création: ' + error.message, 'error');
             } finally {
                 registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Créer mon compte';
                 registerButton.disabled = false;
@@ -983,10 +1320,11 @@
                     role: "super_admin"
                 };
                 
-                showToast('Accès développeur autorisé', 'success');
+                console.log('🔧 Accès développeur autorisé');
+                showToast('🔧 Accès développeur autorisé', 'success');
                 showDevDashboard();
             } else {
-                showToast('Clé d\'accès invalide', 'error');
+                showToast('❌ Clé d\'accès invalide', 'error');
             }
         }
 
@@ -997,16 +1335,19 @@
                 }
                 
                 currentUser = null;
-                showToast('Déconnexion réussie', 'success');
+                console.log('👋 Déconnexion utilisateur');
+                showToast('👋 Déconnexion réussie', 'success');
                 showUserLogin();
             } catch (error) {
-                showToast('Erreur lors de la déconnexion', 'error');
+                console.error('❌ Erreur lors de la déconnexion:', error);
+                showToast('❌ Erreur lors de la déconnexion', 'error');
             }
         }
 
         function devLogout() {
             currentDevUser = null;
-            showToast('Déconnexion développeur', 'success');
+            console.log('👋 Déconnexion développeur');
+            showToast('👋 Déconnexion développeur', 'success');
             showUserLogin();
         }
 
@@ -1072,6 +1413,8 @@
             
             try {
                 if (supabase && !isOfflineMode) {
+                    console.log('📊 Chargement des données utilisateur...');
+                    
                     // Load user documents
                     const { data: docs, error: docsError } = await supabase
                         .from('documents')
@@ -1080,6 +1423,7 @@
                     
                     if (!docsError) {
                         documents = docs || [];
+                        console.log(`📄 ${documents.length} documents trouvés`);
                     }
                     
                     // Load user categories
@@ -1090,12 +1434,13 @@
                     
                     if (!catsError) {
                         categories = cats || [];
+                        console.log(`🏷️ ${categories.length} catégories trouvées`);
                     }
                 }
                 
                 updateDashboardStats();
             } catch (error) {
-                console.error('Erreur lors du chargement des données:', error);
+                console.error('❌ Erreur lors du chargement des données:', error);
             }
         }
 
@@ -1104,7 +1449,7 @@
             document.getElementById('userCatCount').textContent = categories.length;
             
             // Calculate storage used (simplified)
-            const totalSize = documents.reduce((sum, doc) => sum + (doc.size || 0), 0);
+            const totalSize = documents.reduce((sum, doc) => sum + (doc.file_size || 0), 0);
             const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
             document.getElementById('userStorageUsed').textContent = `${sizeInMB} MB`;
             
@@ -1218,12 +1563,12 @@
         }
 
         function showPasswordReset() {
-            showToast('Fonctionnalité de récupération en cours de développement', 'info');
+            showToast('🔧 Fonctionnalité de récupération en cours de développement', 'info');
         }
 
         function quickSearch(query) {
             if (query.length < 2) return;
-            console.log('Recherche rapide:', query);
+            console.log('🔍 Recherche rapide:', query);
             // TODO: Implement real search
         }
 
@@ -1267,7 +1612,7 @@
             const scriptText = scriptElement.textContent;
             
             navigator.clipboard.writeText(scriptText).then(() => {
-                showToast('Script SQL copié dans le presse-papiers !', 'success');
+                showToast('📋 Script SQL copié dans le presse-papiers !', 'success');
             }).catch(() => {
                 // Fallback for older browsers
                 const textArea = document.createElement('textarea');
@@ -1276,12 +1621,12 @@
                 textArea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
-                showToast('Script SQL copié !', 'success');
+                showToast('📋 Script SQL copié !', 'success');
             });
         }
 
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d8ec9db33ee3cc',t:'MTc1NzYxMjE1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d926fe21c9e3cc',t:'MTc1NzYxNDU0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
