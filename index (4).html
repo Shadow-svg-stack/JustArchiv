@@ -3,2114 +3,1285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustArchiv - Système de Gestion de Documents</title>
+    <title>JustArchiv - Gestionnaire de Documents</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        .modal { display: none; }
-        .modal.active { display: flex; }
-        .drag-over { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
-        .toast { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
-        .toast.show { transform: translateX(0); }
-        .loading { border: 3px solid #f3f4f6; border-top: 3px solid #3b82f6; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .slide-in { animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-        .vip-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .admin-gradient { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .user-gradient { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .tag { @apply inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-full mr-1 mb-1; }
-        .tag.selected { @apply bg-blue-500 text-white; }
-        .permission-card { transition: all 0.3s ease; }
-        .permission-card:hover { transform: translateY(-2px); }
-        .stats-card { background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%); backdrop-filter: blur(10px); }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        
+        .toast {
+            animation: toastSlide 0.3s ease-out;
+        }
+        
+        @keyframes toastSlide {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .dark .bg-white { background-color: #1f2937; }
+        .dark .text-gray-900 { color: #f9fafb; }
+        .dark .text-gray-600 { color: #d1d5db; }
+        .dark .border-gray-200 { border-color: #374151; }
+        .dark .bg-gray-50 { background-color: #111827; }
+        .dark .bg-gray-100 { background-color: #1f2937; }
+        
+        .code-editor {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        
+        .status-indicator {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .log-entry {
+            border-left: 4px solid transparent;
+        }
+        
+        .log-entry.error { border-left-color: #ef4444; }
+        .log-entry.warning { border-left-color: #f59e0b; }
+        .log-entry.info { border-left-color: #3b82f6; }
+        .log-entry.success { border-left-color: #10b981; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
+        }
+        
+        .document-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .document-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .upload-zone {
+            border: 2px dashed #d1d5db;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone.dragover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        
+        .category-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .search-highlight {
+            background-color: #fef3c7;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .connection-status.connected {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .connection-status.disconnected {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+
+        .connection-status.connecting {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+<body class="bg-gray-50 transition-colors duration-300">
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 w-full max-w-md border border-white/20">
+    <!-- Supabase Setup Modal -->
+    <div id="supabaseSetupModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl fade-in">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-green-600 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center">
+                        <i class="fas fa-database text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900">Configuration Supabase</h3>
+                        <p class="text-gray-600">Configurez votre connexion à la base de données</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-6">
+                    <div id="connectionStatus" class="connection-status disconnected">
+                        <i class="fas fa-times-circle mr-2"></i>
+                        <span>Non connecté</span>
+                    </div>
+                </div>
+
+                <form id="supabaseSetupForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">URL du projet Supabase</label>
+                        <input type="url" id="setupSupabaseUrl" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                               placeholder="https://votre-projet.supabase.co">
+                        <p class="text-xs text-gray-500 mt-1">Trouvez cette URL dans les paramètres de votre projet Supabase</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Clé publique (anon key)</label>
+                        <div class="relative">
+                            <input type="password" id="setupSupabaseKey" required 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                                   placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                            <button type="button" onclick="togglePasswordVisibility('setupSupabaseKey')" 
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Clé publique sécurisée pour l'authentification</p>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-medium text-blue-900 mb-2">Instructions de configuration</h4>
+                                <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                                    <li>Créez un compte sur <a href="https://supabase.com" target="_blank" class="underline">supabase.com</a></li>
+                                    <li>Créez un nouveau projet</li>
+                                    <li>Allez dans Settings → API</li>
+                                    <li>Copiez l'URL et la clé anon key</li>
+                                    <li>Activez l'authentification par email</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-900 rounded-lg p-4 mb-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-white font-medium">Script SQL à exécuter dans Supabase</h4>
+                            <button onclick="copyDatabaseScript()" class="text-blue-400 hover:text-blue-300 text-sm">
+                                <i class="fas fa-copy mr-1"></i>Copier
+                            </button>
+                        </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" onclick="testSupabaseConnection()" 
+                                class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-all font-medium">
+                            <i class="fas fa-plug mr-2"></i>Tester la connexion
+                        </button>
+                        <button type="submit" 
+                                class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-medium">
+                            <i class="fas fa-save mr-2"></i>Sauvegarder et continuer
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" onclick="useOfflineMode()" 
+                                class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                            Continuer en mode hors ligne (données temporaires)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Login Screen -->
+    <div id="userLoginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
             <div class="text-center mb-8">
-                <div class="text-6xl mb-4">🏛️</div>
-                <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">JustArchiv</h1>
-                <p class="text-gray-600 font-medium">Système de Gestion Documentaire</p>
-                <div class="mt-2 text-xs text-gray-500">Bonne expérience d'utilisation 😊</div>
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-archive text-white text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">JustArchiv</h1>
+                <p class="text-gray-600 mt-2">Gestionnaire de documents intelligent</p>
             </div>
-
-            <!-- Login Form -->
-            <div id="login-form" class="space-y-6">
+            
+            <form id="userLoginForm" class="space-y-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="login-email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="votre@email.com" />
+                    <input type="email" id="userEmail" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                           placeholder="votre@email.com">
                 </div>
+                
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                    <input type="password" id="login-password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="••••••••" />
-                </div>
-                <div class="flex items-center">
-                    <input type="checkbox" id="vip-mode" class="mr-2 rounded">
-                    <label for="vip-mode" class="text-sm text-gray-700">🌟 Mode Développeur VIP</label>
-                </div>
-                <button onclick="login()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
-                    <span id="login-btn-text">Se connecter</span>
-                    <div id="login-spinner" class="loading mx-auto hidden"></div>
-                </button>
-                <div class="text-center">
-                    <button onclick="showRegister()" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                        Pas de compte ? S'inscrire
-                    </button>
-                </div>
-            </div>
-
-            <!-- Register Form -->
-            <div id="register-form" class="space-y-6 hidden">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet</label>
-                    <input type="text" id="register-name" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Jean Dupont" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="register-email" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="votre@email.com" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                    <input type="password" id="register-password" required class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="••••••••" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Code VIP (optionnel)</label>
-                    <input type="text" id="vip-code" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 transition-all" placeholder="Code développeur..." />
-                    <p class="text-xs text-gray-500 mt-1">Laissez vide pour un compte utilisateur standard</p>
-                </div>
-                <button onclick="register()" class="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
-                    <span id="register-btn-text">S'inscrire</span>
-                    <div id="register-spinner" class="loading mx-auto hidden"></div>
-                </button>
-                <div class="text-center">
-                    <button onclick="showLogin()" class="text-indigo-600 hover:text-indigo-800 font-medium">
-                        Déjà un compte ? Se connecter
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App -->
-    <div id="app" class="hidden">
-        <!-- Header -->
-        <header class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-4">
-                    <div class="flex items-center space-x-4">
-                        <span class="text-3xl">🏛️</span>
-                        <div>
-                            <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">JustArchiv</h1>
-                            <div class="text-xs text-gray-500">Système Complet</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <div class="text-right">
-                            <div id="user-name" class="text-gray-800 font-medium"></div>
-                            <div class="flex items-center space-x-2">
-                                <span id="user-role" class="text-xs px-2 py-1 rounded-full"></span>
-                                <span id="user-permissions" class="text-xs text-gray-500"></span>
-                            </div>
-                        </div>
-                        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all">
-                            Déconnexion
+                    <div class="relative">
+                        <input type="password" id="userPassword" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
+                               placeholder="Votre mot de passe">
+                        <button type="button" onclick="togglePasswordVisibility('userPassword')" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
-            </div>
-        </header>
-
-        <!-- Navigation -->
-        <nav class="bg-gray-900 text-white shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex space-x-8 overflow-x-auto">
-                    <button onclick="showSection('dashboard')" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap">
-                        📊 Tableau de Bord
-                    </button>
-                    <button onclick="showSection('documents')" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap">
-                        📄 Documents
-                    </button>
-                    <button onclick="showSection('categories')" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap">
-                        📁 Catégories
-                    </button>
-                    <button onclick="showSection('tags')" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap">
-                        🏷️ Tags
-                    </button>
-                    <button onclick="showSection('users')" id="users-nav" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap hidden">
-                        👥 Utilisateurs
-                    </button>
-                    <button onclick="showSection('permissions')" id="permissions-nav" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap hidden">
-                        🔐 Permissions
-                    </button>
-                    <button onclick="showSection('settings')" class="nav-btn py-4 px-3 border-b-2 border-transparent hover:border-indigo-400 transition-all whitespace-nowrap">
-                        ⚙️ Configuration
-                    </button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Dashboard Section -->
-            <div id="dashboard-section" class="section fade-in">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">📊 Tableau de Bord</h2>
-                    <p class="text-gray-600">Vue d'ensemble de votre système documentaire</p>
-                </div>
-
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="stats-card bg-gradient-to-br from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-blue-100 text-sm">Documents</p>
-                                <p id="stats-documents" class="text-3xl font-bold">0</p>
-                            </div>
-                            <div class="text-4xl opacity-80">📄</div>
-                        </div>
-                    </div>
-                    <div class="stats-card bg-gradient-to-br from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-100 text-sm">Catégories</p>
-                                <p id="stats-categories" class="text-3xl font-bold">0</p>
-                            </div>
-                            <div class="text-4xl opacity-80">📁</div>
-                        </div>
-                    </div>
-                    <div class="stats-card bg-gradient-to-br from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-purple-100 text-sm">Tags</p>
-                                <p id="stats-tags" class="text-3xl font-bold">0</p>
-                            </div>
-                            <div class="text-4xl opacity-80">🏷️</div>
-                        </div>
-                    </div>
-                    <div class="stats-card bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-orange-100 text-sm">Utilisateurs</p>
-                                <p id="stats-users" class="text-3xl font-bold">0</p>
-                            </div>
-                            <div class="text-4xl opacity-80">👥</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">📈 Activité Récente</h3>
-                    <div id="recent-activity" class="space-y-3">
-                        <div class="text-center text-gray-500 py-8">
-                            <span class="text-4xl block mb-2">📊</span>
-                            <p>Aucune activité récente</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Documents Section -->
-            <div id="documents-section" class="section hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-800">📄 Gestion des Documents</h2>
-                        <p class="text-gray-600">Organisez et gérez vos documents</p>
-                    </div>
-                    <button onclick="openDocumentModal()" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                        + Nouveau Document
-                    </button>
-                </div>
-
-                <!-- Advanced Search and Filters -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">🔍 Recherche Avancée</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div>
-                            <input type="text" id="search-input" placeholder="🔍 Rechercher..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all" />
-                        </div>
-                        <div>
-                            <select id="category-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Toutes les catégories</option>
-                            </select>
-                        </div>
-                        <div>
-                            <select id="user-filter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="">Tous les utilisateurs</option>
-                            </select>
-                        </div>
-                        <div>
-                            <button onclick="clearFilters()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg transition-all">
-                                Effacer
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                        <div id="tag-filters" class="flex flex-wrap gap-2">
-                            <!-- Tags will be populated here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Documents Grid -->
-                <div id="documents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">📄</span>
-                        <p class="text-xl mb-4">Aucun document trouvé</p>
-                        <button onclick="openDocumentModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Ajouter votre premier document
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Categories Section -->
-            <div id="categories-section" class="section hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-800">📁 Gestion des Catégories</h2>
-                        <p class="text-gray-600">Organisez vos documents par catégories</p>
-                    </div>
-                    <button onclick="openCategoryModal()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                        + Nouvelle Catégorie
-                    </button>
-                </div>
-
-                <div id="categories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">📁</span>
-                        <p class="text-xl mb-4">Aucune catégorie créée</p>
-                        <button onclick="openCategoryModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Créer votre première catégorie
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Tags Section -->
-            <div id="tags-section" class="section hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-800">🏷️ Gestion des Tags</h2>
-                        <p class="text-gray-600">Étiquetez vos documents pour une meilleure organisation</p>
-                    </div>
-                    <button onclick="openTagModal()" class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                        + Nouveau Tag
-                    </button>
-                </div>
-
-                <div id="tags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">🏷️</span>
-                        <p class="text-xl mb-4">Aucun tag créé</p>
-                        <button onclick="openTagModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Créer votre premier tag
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Users Section (Admin/VIP only) -->
-            <div id="users-section" class="section hidden">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-800">👥 Gestion des Utilisateurs</h2>
-                        <p class="text-gray-600">Gérez les utilisateurs et leurs rôles</p>
-                    </div>
-                    <button onclick="openUserModal()" class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-xl transition-all transform hover:scale-105 shadow-lg">
-                        + Nouvel Utilisateur
-                    </button>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière connexion</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table" class="bg-white divide-y divide-gray-200">
-                                <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                        <span class="text-4xl block mb-2">👥</span>
-                                        <p>Aucun utilisateur trouvé</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Permissions Section (VIP only) -->
-            <div id="permissions-section" class="section hidden">
-                <div class="mb-8">
-                    <h2 class="text-3xl font-bold text-gray-800">🔐 Gestion des Permissions</h2>
-                    <p class="text-gray-600">Configurez les permissions avancées du système</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Role Permissions -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">👑 Permissions par Rôle</h3>
-                        <div class="space-y-4">
-                            <div class="permission-card border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="font-medium text-gray-800">🌟 VIP (Développeur)</span>
-                                    <span class="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded-full">Accès Total</span>
-                                </div>
-                                <div class="text-sm text-gray-600 space-y-1">
-                                    <div>✅ Gestion complète des utilisateurs</div>
-                                    <div>✅ Configuration système</div>
-                                    <div>✅ Permissions avancées</div>
-                                    <div>✅ Accès à tous les documents</div>
-                                </div>
-                            </div>
-                            <div class="permission-card border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="font-medium text-gray-800">👨‍💼 Admin</span>
-                                    <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">Élevé</span>
-                                </div>
-                                <div class="text-sm text-gray-600 space-y-1">
-                                    <div>✅ Gestion des utilisateurs</div>
-                                    <div>✅ Gestion des catégories</div>
-                                    <div>✅ Accès aux documents</div>
-                                    <div>❌ Configuration système</div>
-                                </div>
-                            </div>
-                            <div class="permission-card border border-gray-200 rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="font-medium text-gray-800">👤 Utilisateur</span>
-                                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Standard</span>
-                                </div>
-                                <div class="text-sm text-gray-600 space-y-1">
-                                    <div>✅ Ses propres documents</div>
-                                    <div>✅ Création de documents</div>
-                                    <div>❌ Gestion des utilisateurs</div>
-                                    <div>❌ Configuration système</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- System Settings -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">⚙️ Paramètres Système</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-700">Inscription publique</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="public-registration" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-700">Validation des documents</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="document-validation" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-700">Notifications email</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="email-notifications" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                        </div>
-                        <button onclick="saveSystemSettings()" class="w-full mt-6 bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                            💾 Sauvegarder
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Section -->
-            <div id="settings-section" class="section hidden">
-                <h2 class="text-3xl font-bold text-gray-800 mb-8">⚙️ Configuration</h2>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Supabase Configuration -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold mb-4 flex items-center">
-                            <span class="mr-2">🔧</span>
-                            Configuration Supabase
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">URL Supabase</label>
-                                <input type="text" id="supabase-url" placeholder="https://pymlruomnsycgssxvjfi.supabase.co" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Clé anonyme Supabase</label>
-                                <input type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5bWxydW9tbnN5Y2dzc3h2amZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NDk2OTMsImV4cCI6MjA3MzAyNTY5M30.-GRmXqDAqLK9ETk_PYaqqVGujBz4f9IidNrDRssYCQ4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                            </div>
-                            <button onclick="saveSupabaseConfig()" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                                💾 Sauvegarder la configuration
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Database Management -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold mb-4 flex items-center">
-                            <span class="mr-2">🗄️</span>
-                            Base de données
-                        </h3>
-                        <div class="space-y-4">
-                            <button onclick="initializeDatabase()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                                🚀 Initialiser les tables
-                            </button>
-                            <button onclick="loadSampleData()" class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                                📊 Charger des données d'exemple
-                            </button>
-                            <button onclick="exportData()" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                                📤 Exporter les données
-                            </button>
-                            <button onclick="resetDatabase()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-all">
-                                🗑️ Réinitialiser (DANGER)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SQL Console (VIP only) -->
-                <div id="sql-console" class="mt-8 bg-white rounded-xl shadow-lg p-6 hidden">
-                    <h3 class="text-xl font-bold mb-4 flex items-center">
-                        <span class="mr-2">💻</span>
-                        Console SQL (Mode Développeur)
-                    </h3>
-                    <div class="space-y-4">
-                        <textarea id="sql-query" rows="6" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm" placeholder="SELECT * FROM documents;"></textarea>
-                        <div class="flex space-x-4">
-                            <button onclick="executeSQLQuery()" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                                ▶️ Exécuter
-                            </button>
-                            <button onclick="clearSQLConsole()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                                🗑️ Effacer
-                            </button>
-                        </div>
-                        <div id="sql-results" class="bg-gray-50 rounded-lg p-4 min-h-[100px] font-mono text-sm"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Document Modal -->
-    <div id="document-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800">📄 Gestion de Document</h3>
-            </div>
-            <form id="document-form" class="p-6 space-y-6">
-                <input type="hidden" id="document-id" />
-                
-                <!-- Basic Info -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom du document *</label>
-                        <input type="text" id="document-name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Catégorie *</label>
-                        <select id="document-category" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="">Sélectionner une catégorie</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea id="document-description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-
-                <!-- Tags -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
-                    <div id="document-tags-container" class="border border-gray-300 rounded-lg p-3 min-h-[50px]">
-                        <div id="selected-tags" class="flex flex-wrap gap-2 mb-2"></div>
-                        <input type="text" id="tag-input" placeholder="Tapez pour ajouter des tags..." class="w-full border-none outline-none" />
-                    </div>
-                    <div id="available-tags" class="mt-2 flex flex-wrap gap-2"></div>
-                </div>
-
-                <!-- File Upload -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
-                    <div id="file-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition-colors cursor-pointer">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <p class="mt-2 text-sm text-gray-600">
-                            <span class="font-medium">Cliquez pour télécharger</span> ou glissez-déposez
-                        </p>
-                        <p class="text-xs text-gray-500">PDF, DOC, DOCX, TXT, JPG, PNG jusqu'à 10MB</p>
-                    </div>
-                    <input type="file" id="document-file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png" class="hidden" />
-                </div>
-
-                <!-- Permissions (VIP/Admin only) -->
-                <div id="document-permissions" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center">
-                            <input type="radio" name="doc-visibility" value="private" checked class="mr-2">
-                            <span class="text-sm">🔒 Privé (seulement moi)</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="doc-visibility" value="team" class="mr-2">
-                            <span class="text-sm">👥 Équipe (utilisateurs de mon organisation)</span>
-                        </label>
-                        <label class="flex items-center">
-                            <input type="radio" name="doc-visibility" value="public" class="mr-2">
-                            <span class="text-sm">🌍 Public (tous les utilisateurs)</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex justify-end space-x-4 pt-4 border-t border-gray-200">
-                    <button type="button" onclick="closeModal('document-modal')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all">
-                        Annuler
-                    </button>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-all">
-                        <span id="document-submit-text">Ajouter</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Category Modal -->
-    <div id="category-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800">📁 Gestion de Catégorie</h3>
-            </div>
-            <form id="category-form" class="p-6 space-y-4">
-                <input type="hidden" id="category-id" />
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom de la catégorie *</label>
-                    <input type="text" id="category-name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <textarea id="category-description" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Couleur</label>
-                    <div class="flex space-x-2">
-                        <button type="button" onclick="selectColor('blue')" class="w-10 h-10 bg-blue-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectColor('green')" class="w-10 h-10 bg-green-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectColor('purple')" class="w-10 h-10 bg-purple-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectColor('red')" class="w-10 h-10 bg-red-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectColor('yellow')" class="w-10 h-10 bg-yellow-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectColor('indigo')" class="w-10 h-10 bg-indigo-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                    </div>
-                    <input type="hidden" id="category-color" value="blue" />
-                </div>
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" onclick="closeModal('category-modal')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        Annuler
-                    </button>
-                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        <span id="category-submit-text">Créer</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Tag Modal -->
-    <div id="tag-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800">🏷️ Gestion de Tag</h3>
-            </div>
-            <form id="tag-form" class="p-6 space-y-4">
-                <input type="hidden" id="tag-id" />
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom du tag *</label>
-                    <input type="text" id="tag-name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Couleur</label>
-                    <div class="flex space-x-2">
-                        <button type="button" onclick="selectTagColor('gray')" class="w-8 h-8 bg-gray-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('red')" class="w-8 h-8 bg-red-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('yellow')" class="w-8 h-8 bg-yellow-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('green')" class="w-8 h-8 bg-green-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('blue')" class="w-8 h-8 bg-blue-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('indigo')" class="w-8 h-8 bg-indigo-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('purple')" class="w-8 h-8 bg-purple-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                        <button type="button" onclick="selectTagColor('pink')" class="w-8 h-8 bg-pink-500 rounded-full border-2 border-gray-300 hover:border-gray-500 transition-all"></button>
-                    </div>
-                    <input type="hidden" id="tag-color" value="gray" />
-                </div>
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" onclick="closeModal('tag-modal')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        Annuler
-                    </button>
-                    <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        <span id="tag-submit-text">Créer</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- User Modal (Admin/VIP only) -->
-    <div id="user-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-bold text-gray-800">👤 Gestion d'Utilisateur</h3>
-            </div>
-            <form id="user-form" class="p-6 space-y-4">
-                <input type="hidden" id="user-id" />
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nom complet *</label>
-                    <input type="text" id="user-name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <input type="email" id="user-email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
-                    <select id="user-role" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="user">👤 Utilisateur</option>
-                        <option value="admin">👨‍💼 Administrateur</option>
-                    </select>
-                </div>
-                <div id="vip-role-option" class="hidden">
+                <div class="flex items-center justify-between">
                     <label class="flex items-center">
-                        <input type="checkbox" id="make-vip" class="mr-2">
-                        <span class="text-sm">🌟 Promouvoir en VIP (Développeur)</span>
+                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
+                    </label>
+                    <a href="#" onclick="showPasswordReset()" class="text-sm text-blue-600 hover:text-blue-800">Mot de passe oublié ?</a>
+                </div>
+                
+                <button type="submit" id="loginButton"
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Pas encore de compte ? 
+                        <a href="#" onclick="showRegister()" class="text-blue-600 hover:text-blue-800 font-medium">S'inscrire</a>
+                    </p>
+                </div>
+                
+                <!-- Dev Access -->
+                <div class="pt-4 border-t border-gray-200">
+                    <button type="button" onclick="showDevAccess()" 
+                            class="w-full text-xs text-gray-500 hover:text-gray-700 transition-colors">
+                        Accès développeur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Registration Screen -->
+    <div id="userRegisterScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-plus text-white text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">Créer un compte</h1>
+                <p class="text-gray-600 mt-2">Rejoignez JustArchiv</p>
+            </div>
+            
+            <form id="userRegisterForm" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
+                        <input type="text" id="firstName" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                               placeholder="John">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
+                        <input type="text" id="lastName" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                               placeholder="Doe">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="registerEmail" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                           placeholder="votre@email.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
+                    <input type="password" id="registerPassword" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                           placeholder="Minimum 8 caractères">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
+                    <input type="password" id="confirmPassword" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                           placeholder="Répétez votre mot de passe">
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" id="acceptTerms" required class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="acceptTerms" class="ml-2 text-sm text-gray-600">
+                        J'accepte les <a href="#" class="text-blue-600 hover:text-blue-800">conditions d'utilisation</a>
                     </label>
                 </div>
-                <div class="flex justify-end space-x-4 pt-4">
-                    <button type="button" onclick="closeModal('user-modal')" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        Annuler
-                    </button>
-                    <button type="submit" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                        <span id="user-submit-text">Créer</span>
+                
+                <button type="submit" id="registerButton"
+                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium">
+                    <i class="fas fa-user-plus mr-2"></i>Créer mon compte
+                </button>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-600">
+                        Déjà un compte ? 
+                        <a href="#" onclick="showLogin()" class="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dev Login Screen -->
+    <div id="devLoginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 hidden">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="bg-gradient-to-r from-purple-600 to-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-code text-white text-2xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900">Dashboard Dev</h1>
+                <p class="text-gray-600 mt-2">Accès développeur sécurisé</p>
+            </div>
+            
+            <form id="devLoginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Clé d'accès développeur</label>
+                    <div class="relative">
+                        <input type="password" id="devKey" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
+                               placeholder="Entrez votre clé d'accès">
+                        <button type="button" onclick="togglePasswordVisibility('devKey')" 
+                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Code 2FA (optionnel)</label>
+                    <input type="text" id="dev2FA" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                           placeholder="123456">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium">
+                    <i class="fas fa-shield-alt mr-2"></i>Accéder au Dashboard
+                </button>
+                
+                <div class="text-center">
+                    <button type="button" onclick="backToUserLogin()" class="text-sm text-gray-500 hover:text-gray-700">
+                        ← Retour à la connexion utilisateur
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="userDashboard" class="hidden">
+        <!-- User Sidebar -->
+        <div id="userSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform -translate-x-full lg:translate-x-0 sidebar-transition">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-10 h-10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-archive text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-900">JustArchiv</h1>
+                        <p class="text-xs text-gray-500">Documents</p>
+                    </div>
+                </div>
+                <button onclick="toggleUserSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <nav class="p-6 space-y-2">
+                <a href="#" onclick="showUserSection('dashboard')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg bg-blue-50 text-blue-700">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Tableau de bord</span>
+                </a>
+                <a href="#" onclick="showUserSection('documents')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Mes documents</span>
+                </a>
+                <a href="#" onclick="showUserSection('upload')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <span>Ajouter</span>
+                </a>
+                <a href="#" onclick="showUserSection('categories')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-tags"></i>
+                    <span>Catégories</span>
+                </a>
+                <a href="#" onclick="showUserSection('search')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-search"></i>
+                    <span>Recherche</span>
+                </a>
+                <a href="#" onclick="showUserSection('profile')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Profil</span>
+                </a>
+            </nav>
+            
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900" id="currentUserName">Utilisateur</p>
+                        <p class="text-sm text-gray-500" id="currentUserEmail">email@example.com</p>
+                    </div>
+                </div>
+                <button onclick="userLogout()" class="w-full flex items-center justify-center space-x-2 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- User Main Content -->
+        <div class="lg:ml-64">
+            <!-- User Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleUserSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        <h2 id="userPageTitle" class="text-2xl font-bold text-gray-900">Tableau de bord</h2>
+                        <div id="userConnectionStatus" class="connection-status connected">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>Connecté</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <input type="text" id="quickSearch" placeholder="Recherche rapide..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
+                                   oninput="quickSearch(this.value)">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button onclick="toggleUserTheme()" class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                            <i id="userThemeIcon" class="fas fa-moon"></i>
+                        </button>
+                        <div class="relative">
+                            <button class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors relative">
+                                <i class="fas fa-bell"></i>
+                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- User Dashboard Section -->
+            <div id="userDashboardSection" class="p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Mes Documents</p>
+                                <p class="text-3xl font-bold text-gray-900" id="userDocCount">0</p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-lg">
+                                <i class="fas fa-file-alt text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center text-sm">
+                            <span class="text-green-600 font-medium" id="docCountChange">+0</span>
+                            <span class="text-gray-600 ml-2">cette semaine</span>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Catégories</p>
+                                <p class="text-3xl font-bold text-gray-900" id="userCatCount">0</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-tags text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Espace Utilisé</p>
+                                <p class="text-3xl font-bold text-gray-900" id="userStorageUsed">0 MB</p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <i class="fas fa-hdd text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="bg-gray-200 rounded-full h-2">
+                                <div class="bg-orange-600 h-2 rounded-full" style="width: 0%" id="storageProgress"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1" id="storageText">0% de 1 GB</p>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Dernière activité</p>
+                                <p class="text-lg font-bold text-green-600" id="lastActivity">Jamais</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-clock text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Documents -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Documents récents</h3>
+                        <a href="#" onclick="showUserSection('documents')" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Voir tous
+                        </a>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="recentDocuments">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-alt text-4xl mb-4"></i>
+                            <p>Aucun document récent</p>
+                            <button onclick="showUserSection('upload')" class="mt-2 text-blue-600 hover:text-blue-800">
+                                Ajouter votre premier document
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
+                        <div class="space-y-3">
+                            <button onclick="showUserSection('upload')" class="w-full flex items-center space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-cloud-upload-alt text-blue-600"></i>
+                                <span class="font-medium text-blue-900">Ajouter un document</span>
+                            </button>
+                            <button onclick="showUserSection('categories')" class="w-full flex items-center space-x-3 p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
+                                <i class="fas fa-tags text-purple-600"></i>
+                                <span class="font-medium text-purple-900">Gérer les catégories</span>
+                            </button>
+                            <button onclick="showUserSection('search')" class="w-full flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
+                                <i class="fas fa-search text-green-600"></i>
+                                <span class="font-medium text-green-900">Recherche avancée</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité récente</h3>
+                        <div class="space-y-3" id="recentActivity">
+                            <div class="text-center py-4 text-gray-500">
+                                <i class="fas fa-clock text-2xl mb-2"></i>
+                                <p class="text-sm">Aucune activité récente</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other User Sections (Documents, Upload, etc.) -->
+            <div id="userDocumentsSection" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-file-alt text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mes documents</h3>
+                    <p class="text-gray-600 mb-6">Vos documents apparaîtront ici</p>
+                    <button onclick="showUserSection('upload')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Ajouter un document
+                    </button>
+                </div>
+            </div>
+
+            <div id="userUploadSection" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Ajouter des documents</h3>
+                    <p class="text-gray-600">Fonctionnalité d'upload en cours de développement</p>
+                </div>
+            </div>
+
+            <div id="userCategoriesSection" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-tags text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Catégories</h3>
+                    <p class="text-gray-600">Organisez vos documents par catégories</p>
+                </div>
+            </div>
+
+            <div id="userSearchSection" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-search text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Recherche avancée</h3>
+                    <p class="text-gray-600">Trouvez rapidement vos documents</p>
+                </div>
+            </div>
+
+            <div id="userProfileSection" class="p-6 hidden">
+                <div class="text-center py-12">
+                    <i class="fas fa-user-cog text-6xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mon profil</h3>
+                    <p class="text-gray-600">Gérez vos informations personnelles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dev Dashboard -->
+    <div id="devDashboard" class="hidden">
+        <div class="text-center py-12">
+            <i class="fas fa-code text-6xl text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Dashboard Développeur</h3>
+            <p class="text-gray-600">Interface d'administration en cours de développement</p>
         </div>
     </div>
 
     <script>
-        // Global variables
+        // Supabase configuration
         let supabase = null;
+        let supabaseConfig = {
+            url: '',
+            anonKey: ''
+        };
+
+        // Application state
         let currentUser = null;
-        let userProfile = null;
-        let allDocuments = [];
-        let allCategories = [];
-        let allTags = [];
-        let allUsers = [];
-        let selectedTags = [];
+        let currentDevUser = null;
+        let isDarkMode = false;
+        let userSidebarOpen = false;
+        let devSidebarOpen = false;
+        let documents = [];
+        let categories = [];
+        let isOfflineMode = false;
 
-        // VIP codes (in production, these would be in a secure backend)
-        const VIP_CODES = ['DEV2024', 'JUSTARCHIV_VIP', 'DEVELOPER_ACCESS'];
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            initSupabase();
-            setupEventListeners();
-            checkAuthState();
-        });
-
-        // Initialize Supabase
-        function initSupabase() {
-            const url = localStorage.getItem('supabase-url');
-            const key = localStorage.getItem('supabase-key');
-            
-            if (url && key) {
-                try {
-                    supabase = window.supabase.createClient(url, key);
-                    console.log('✅ Supabase connecté');
-                    return true;
-                } catch (error) {
-                    console.error('❌ Erreur Supabase:', error);
-                    showToast('Erreur de connexion Supabase', 'error');
-                    return false;
-                }
-            }
-            return false;
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Search functionality
-            document.getElementById('search-input').addEventListener('input', filterDocuments);
-            document.getElementById('category-filter').addEventListener('change', filterDocuments);
-            document.getElementById('user-filter').addEventListener('change', filterDocuments);
-
-            // File upload
-            const fileInput = document.getElementById('document-file');
-            const dropZone = document.getElementById('file-drop-zone');
-
-            dropZone.addEventListener('click', () => fileInput.click());
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.classList.add('drag-over');
-            });
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.classList.remove('drag-over');
-            });
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.classList.remove('drag-over');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    updateFilePreview(files[0]);
-                }
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    updateFilePreview(e.target.files[0]);
-                }
-            });
-
-            // Tag input
-            document.getElementById('tag-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addTagToDocument(e.target.value.trim());
-                    e.target.value = '';
-                }
-            });
-
-            // Form submissions
-            document.getElementById('document-form').addEventListener('submit', handleDocumentSubmit);
-            document.getElementById('category-form').addEventListener('submit', handleCategorySubmit);
-            document.getElementById('tag-form').addEventListener('submit', handleTagSubmit);
-            document.getElementById('user-form').addEventListener('submit', handleUserSubmit);
-        }
-
-        // Check authentication state
-        async function checkAuthState() {
-            if (!supabase) return;
-
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    currentUser = session.user;
-                    await loadUserProfile();
-                    showApp();
-                } else {
-                    showAuth();
-                }
-            } catch (error) {
-                console.error('Erreur auth:', error);
-                showAuth();
-            }
-        }
-
-        // Authentication functions
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const vipMode = document.getElementById('vip-mode').checked;
-
-            if (!email || !password) {
-                showToast('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-
-            if (!supabase) {
-                showToast('Veuillez configurer Supabase dans les paramètres', 'error');
-                showSection('settings');
-                return;
-            }
-
-            setLoading('login', true);
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) throw error;
-
-                currentUser = data.user;
-                await loadUserProfile();
-
-                // Check VIP mode
-                if (vipMode && userProfile && userProfile.role !== 'vip') {
-                    showToast('Mode VIP activé pour cette session', 'warning');
-                    userProfile.role = 'vip'; // Temporary VIP for this session
-                }
-
-                showApp();
-                showToast('Connexion réussie !', 'success');
+        // Initialize application
+        async function initApp() {
+            // Load saved Supabase config
+            const savedConfig = localStorage.getItem('supabase_config');
+            if (savedConfig) {
+                supabaseConfig = JSON.parse(savedConfig);
+                await initSupabase();
                 
-            } catch (error) {
-                console.error('Erreur de connexion:', error);
-                showToast(error.message || 'Erreur de connexion', 'error');
-            } finally {
-                setLoading('login', false);
-            }
-        }
-
-        async function register() {
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const vipCode = document.getElementById('vip-code').value.trim();
-
-            if (!name || !email || !password) {
-                showToast('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showToast('Le mot de passe doit contenir au moins 6 caractères', 'error');
-                return;
-            }
-
-            if (!supabase) {
-                showToast('Veuillez configurer Supabase dans les paramètres', 'error');
-                return;
-            }
-
-            setLoading('register', true);
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password,
-                    options: {
-                        data: {
-                            full_name: name
-                        }
-                    }
-                });
-
-                if (error) throw error;
-
-                // Determine role based on VIP code
-                let role = 'user';
-                if (vipCode && VIP_CODES.includes(vipCode.toUpperCase())) {
-                    role = 'vip';
-                    showToast('Code VIP validé ! Vous avez les privilèges développeur.', 'success');
-                }
-
-                // Create user profile
-                if (data.user) {
-                    await supabase.from('users').insert([{
-                        id: data.user.id,
-                        name: name,
-                        email: email,
-                        role: role
-                    }]);
-                }
-
-                showToast('Inscription réussie ! Vérifiez votre email.', 'success');
-                showLogin();
-                
-            } catch (error) {
-                console.error('Erreur d\'inscription:', error);
-                showToast(error.message || 'Erreur d\'inscription', 'error');
-            } finally {
-                setLoading('register', false);
-            }
-        }
-
-        async function logout() {
-            try {
+                // Check if user is already logged in
                 if (supabase) {
-                    await supabase.auth.signOut();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) {
+                        currentUser = session.user;
+                        showUserDashboard();
+                        return;
+                    }
                 }
-                currentUser = null;
-                userProfile = null;
-                showAuth();
-                showToast('Déconnexion réussie', 'success');
-            } catch (error) {
-                console.error('Erreur de déconnexion:', error);
-                showToast('Erreur de déconnexion', 'error');
+                
+                showUserLogin();
+            } else {
+                // Show Supabase setup modal
+                showSupabaseSetup();
+            }
+            
+            // Initialize event listeners
+            initEventListeners();
+            
+            // Load theme preference
+            const savedTheme = localStorage.getItem('justarchiv_theme');
+            if (savedTheme === 'dark') {
+                toggleUserTheme();
             }
         }
 
-        async function loadUserProfile() {
-            if (!currentUser) return;
+        async function initSupabase() {
+            if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+                return false;
+            }
 
             try {
-                const { data, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (error && error.code !== 'PGRST116') throw error;
-
-                if (data) {
-                    userProfile = data;
-                    updateUserInterface();
+                supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+                
+                // Test connection
+                const { data, error } = await supabase.from('profiles').select('count').limit(1);
+                
+                if (error && error.code !== 'PGRST116') { // PGRST116 = table doesn't exist, which is OK
+                    console.warn('Supabase connection warning:', error);
                 }
+                
+                updateConnectionStatus('connected');
+                return true;
             } catch (error) {
-                console.error('Erreur profil:', error);
+                console.error('Erreur de connexion Supabase:', error);
+                updateConnectionStatus('disconnected');
+                return false;
             }
         }
 
-        function updateUserInterface() {
-            if (!userProfile) return;
-
-            document.getElementById('user-name').textContent = userProfile.name;
-            
-            const roleElement = document.getElementById('user-role');
-            const permissionsElement = document.getElementById('user-permissions');
-            
-            switch (userProfile.role) {
-                case 'vip':
-                    roleElement.textContent = '🌟 VIP Développeur';
-                    roleElement.className = 'vip-gradient text-white text-xs px-3 py-1 rounded-full';
-                    permissionsElement.textContent = 'Accès Total';
-                    // Show VIP sections
-                    document.getElementById('users-nav').classList.remove('hidden');
-                    document.getElementById('permissions-nav').classList.remove('hidden');
-                    document.getElementById('sql-console').classList.remove('hidden');
-                    document.getElementById('vip-role-option').classList.remove('hidden');
-                    document.getElementById('document-permissions').classList.remove('hidden');
-                    break;
-                case 'admin':
-                    roleElement.textContent = '👨‍💼 Administrateur';
-                    roleElement.className = 'admin-gradient text-white text-xs px-3 py-1 rounded-full';
-                    permissionsElement.textContent = 'Gestion Avancée';
-                    document.getElementById('users-nav').classList.remove('hidden');
-                    break;
-                default:
-                    roleElement.textContent = '👤 Utilisateur';
-                    roleElement.className = 'user-gradient text-white text-xs px-3 py-1 rounded-full';
-                    permissionsElement.textContent = 'Accès Standard';
-            }
+        function showSupabaseSetup() {
+            document.getElementById('supabaseSetupModal').classList.remove('hidden');
         }
 
-        // UI functions
-        function showAuth() {
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('app').classList.add('hidden');
+        function hideSupabaseSetup() {
+            document.getElementById('supabaseSetupModal').classList.add('hidden');
         }
 
-        function showApp() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            loadAllData();
-            showSection('dashboard');
-        }
-
-        function showLogin() {
-            document.getElementById('login-form').classList.remove('hidden');
-            document.getElementById('register-form').classList.add('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        }
-
-        function showSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-            // Show selected section
-            document.getElementById(section + '-section').classList.remove('hidden');
-            
-            // Update nav buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('border-indigo-400');
-            });
-            event?.target?.classList?.add('border-indigo-400');
-
-            // Load section-specific data
-            if (section === 'dashboard') {
-                updateDashboardStats();
-            }
-        }
-
-        function setLoading(type, loading) {
-            const btnText = document.getElementById(`${type}-btn-text`);
-            const spinner = document.getElementById(`${type}-spinner`);
-            
-            if (loading) {
-                btnText.classList.add('hidden');
-                spinner.classList.remove('hidden');
-            } else {
-                btnText.classList.remove('hidden');
-                spinner.classList.add('hidden');
-            }
-        }
-
-        // Toast notifications
-        function showToast(message, type = 'info', duration = 4000) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            const colors = {
-                success: 'bg-green-500',
-                error: 'bg-red-500',
-                warning: 'bg-yellow-500',
-                info: 'bg-blue-500'
-            };
-
-            const icons = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
-            };
-
-            toast.className = `toast ${colors[type]} text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3 min-w-[300px]`;
-            toast.innerHTML = `
-                <span class="text-xl">${icons[type]}</span>
-                <span class="flex-1">${message}</span>
-                <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            `;
-
-            container.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 100);
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
-        }
-
-        // Configuration functions
-        function saveSupabaseConfig() {
-            const url = document.getElementById('supabase-url').value.trim();
-            const key = document.getElementById('supabase-key').value.trim();
+        async function testSupabaseConnection() {
+            const url = document.getElementById('setupSupabaseUrl').value;
+            const key = document.getElementById('setupSupabaseKey').value;
             
             if (!url || !key) {
                 showToast('Veuillez remplir tous les champs', 'error');
                 return;
             }
-            
-            localStorage.setItem('supabase-url', url);
-            localStorage.setItem('supabase-key', key);
-            
-            if (initSupabase()) {
-                showToast('Configuration Supabase sauvegardée !', 'success');
+
+            updateConnectionStatus('connecting');
+            showToast('Test de connexion en cours...', 'info');
+
+            try {
+                const testClient = window.supabase.createClient(url, key);
+                const { data, error } = await testClient.from('profiles').select('count').limit(1);
+                
+                if (error && error.code !== 'PGRST116') {
+                    throw error;
+                }
+                
+                updateConnectionStatus('connected');
+                showToast('Connexion Supabase réussie !', 'success');
+            } catch (error) {
+                updateConnectionStatus('disconnected');
+                showToast('Erreur de connexion: ' + error.message, 'error');
             }
         }
 
-        async function initializeDatabase() {
-            if (!supabase) {
-                showToast('Veuillez d\'abord configurer Supabase', 'error');
-                return;
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connectionStatus');
+            const userStatusElement = document.getElementById('userConnectionStatus');
+            
+            statusElement.className = `connection-status ${status}`;
+            
+            const statusConfig = {
+                connected: { icon: 'fas fa-check-circle', text: 'Connecté' },
+                disconnected: { icon: 'fas fa-times-circle', text: 'Non connecté' },
+                connecting: { icon: 'fas fa-spinner fa-spin', text: 'Connexion...' }
+            };
+            
+            const config = statusConfig[status];
+            statusElement.innerHTML = `<i class="${config.icon} mr-2"></i><span>${config.text}</span>`;
+            
+            if (userStatusElement) {
+                userStatusElement.className = `connection-status ${status}`;
+                userStatusElement.innerHTML = `<i class="${config.icon} mr-2"></i><span>${config.text}</span>`;
             }
+        }
 
+        function initEventListeners() {
+            // Supabase setup form
+            document.getElementById('supabaseSetupForm').addEventListener('submit', handleSupabaseSetup);
+            
+            // Login forms
+            document.getElementById('userLoginForm').addEventListener('submit', handleUserLogin);
+            document.getElementById('userRegisterForm').addEventListener('submit', handleUserRegister);
+            document.getElementById('devLoginForm').addEventListener('submit', handleDevLogin);
+        }
+
+        async function handleSupabaseSetup(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('setupSupabaseUrl').value;
+            const key = document.getElementById('setupSupabaseKey').value;
+            
+            supabaseConfig = { url, key };
+            localStorage.setItem('supabase_config', JSON.stringify(supabaseConfig));
+            
+            const success = await initSupabase();
+            if (success) {
+                hideSupabaseSetup();
+                showUserLogin();
+                showToast('Configuration Supabase sauvegardée !', 'success');
+            } else {
+                showToast('Erreur de configuration Supabase', 'error');
+            }
+        }
+
+        function useOfflineMode() {
+            isOfflineMode = true;
+            hideSupabaseSetup();
+            showUserLogin();
+            updateConnectionStatus('disconnected');
+            showToast('Mode hors ligne activé - données temporaires', 'warning');
+        }
+
+        // Authentication functions
+        async function handleUserLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('userEmail').value;
+            const password = document.getElementById('userPassword').value;
+            
+            const loginButton = document.getElementById('loginButton');
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Connexion...';
+            loginButton.disabled = true;
+            
             try {
-                const { data, error } = await supabase.from('categories').select('*').limit(1);
-                
-                if (error) {
-                    showToast('Erreur: Créez les tables SQL dans Supabase (voir console)', 'error');
-                    console.log(`
-🚀 CRÉEZ CES TABLES DANS SUPABASE SQL EDITOR:
-
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Table des catégories
-CREATE TABLE categories (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    color VARCHAR(50) DEFAULT 'blue',
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table des utilisateurs
-CREATE TABLE users (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    role VARCHAR(50) DEFAULT 'user',
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
-    last_login TIMESTAMP
-);
-
--- Table des tags
-CREATE TABLE tags (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    color VARCHAR(50) DEFAULT 'gray',
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table des documents
-CREATE TABLE documents (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    file_name VARCHAR(255),
-    file_size INTEGER,
-    file_type VARCHAR(100),
-    file_url TEXT,
-    category_id UUID REFERENCES categories(id),
-    user_id UUID REFERENCES users(id),
-    visibility VARCHAR(20) DEFAULT 'private',
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table de liaison documents-tags
-CREATE TABLE document_tags (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
-    tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(document_id, tag_id)
-);
-
--- Table des permissions
-CREATE TABLE permissions (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    resource_type VARCHAR(50),
-    resource_id UUID,
-    permission_type VARCHAR(50),
-    granted_by UUID REFERENCES users(id),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Table des activités
-CREATE TABLE activities (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES users(id),
-    action VARCHAR(100) NOT NULL,
-    resource_type VARCHAR(50),
-    resource_id UUID,
-    details JSONB,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Activer RLS
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE tags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE document_tags ENABLE ROW LEVEL SECURITY;
-ALTER TABLE permissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
-
--- Politiques (développement - à sécuriser en production)
-CREATE POLICY "Allow all" ON categories FOR ALL USING (true);
-CREATE POLICY "Allow all" ON users FOR ALL USING (true);
-CREATE POLICY "Allow all" ON documents FOR ALL USING (true);
-CREATE POLICY "Allow all" ON tags FOR ALL USING (true);
-CREATE POLICY "Allow all" ON document_tags FOR ALL USING (true);
-CREATE POLICY "Allow all" ON permissions FOR ALL USING (true);
-CREATE POLICY "Allow all" ON activities FOR ALL USING (true);
-
--- Créer le bucket pour les documents
-INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', true);
-
--- Politique pour le storage
-CREATE POLICY "Allow all" ON storage.objects FOR ALL USING (true);
-                    `);
+                if (supabase && !isOfflineMode) {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    
+                    currentUser = data.user;
+                    showToast('Connexion réussie !', 'success');
+                    showUserDashboard();
                 } else {
-                    showToast('Base de données initialisée !', 'success');
-                    loadAllData();
+                    // Offline mode simulation
+                    currentUser = {
+                        id: 'offline-user',
+                        email: email,
+                        user_metadata: { full_name: 'Utilisateur Hors Ligne' }
+                    };
+                    showToast('Connexion en mode hors ligne', 'warning');
+                    showUserDashboard();
                 }
             } catch (error) {
-                console.error('Erreur initialisation:', error);
-                showToast('Erreur d\'initialisation', 'error');
+                showToast('Erreur de connexion: ' + error.message, 'error');
+            } finally {
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Se connecter';
+                loginButton.disabled = false;
             }
         }
 
-        async function loadSampleData() {
-            if (!supabase) {
-                showToast('Veuillez d\'abord configurer Supabase', 'error');
+        async function handleUserRegister(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                showToast('Les mots de passe ne correspondent pas', 'error');
                 return;
             }
-
+            
+            const registerButton = document.getElementById('registerButton');
+            registerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Création...';
+            registerButton.disabled = true;
+            
             try {
-                // Add sample categories
-                const { data: categories, error: catError } = await supabase
-                    .from('categories')
-                    .insert([
-                        { name: 'Documents Administratifs', description: 'Factures, contrats, documents officiels', color: 'blue' },
-                        { name: 'Rapports', description: 'Rapports d\'activité, analyses, études', color: 'green' },
-                        { name: 'Ressources Humaines', description: 'Documents RH, formations, évaluations', color: 'purple' },
-                        { name: 'Marketing', description: 'Supports marketing, campagnes, visuels', color: 'red' },
-                        { name: 'Technique', description: 'Documentation technique, manuels', color: 'indigo' },
-                        { name: 'Juridique', description: 'Contrats, accords, documents légaux', color: 'yellow' }
-                    ])
-                    .select();
-
-                if (catError) throw catError;
-
-                // Add sample tags
-                const { data: tags, error: tagError } = await supabase
-                    .from('tags')
-                    .insert([
-                        { name: 'urgent', color: 'red' },
-                        { name: 'confidentiel', color: 'purple' },
-                        { name: 'archive', color: 'gray' },
-                        { name: 'en-cours', color: 'yellow' },
-                        { name: 'validé', color: 'green' },
-                        { name: 'brouillon', color: 'blue' },
-                        { name: 'important', color: 'orange' },
-                        { name: 'public', color: 'indigo' }
-                    ])
-                    .select();
-
-                if (tagError) throw tagError;
-
-                showToast('Données d\'exemple chargées !', 'success');
-                loadAllData();
+                if (supabase && !isOfflineMode) {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            data: {
+                                full_name: `${firstName} ${lastName}`,
+                                first_name: firstName,
+                                last_name: lastName
+                            }
+                        }
+                    });
+                    
+                    if (error) throw error;
+                    
+                    if (data.user && !data.user.email_confirmed_at) {
+                        showToast('Vérifiez votre email pour confirmer votre compte', 'info');
+                        showLogin();
+                    } else {
+                        currentUser = data.user;
+                        showToast('Compte créé avec succès !', 'success');
+                        showUserDashboard();
+                    }
+                } else {
+                    // Offline mode simulation
+                    currentUser = {
+                        id: 'offline-user',
+                        email: email,
+                        user_metadata: { full_name: `${firstName} ${lastName}` }
+                    };
+                    showToast('Compte créé en mode hors ligne', 'warning');
+                    showUserDashboard();
+                }
             } catch (error) {
-                console.error('Erreur données exemple:', error);
-                showToast('Erreur lors du chargement des données', 'error');
+                showToast('Erreur lors de la création: ' + error.message, 'error');
+            } finally {
+                registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Créer mon compte';
+                registerButton.disabled = false;
             }
         }
 
-        async function exportData() {
-            if (!supabase) {
-                showToast('Veuillez d\'abord configurer Supabase', 'error');
-                return;
-            }
-
-            try {
-                const exportData = {
-                    categories: allCategories,
-                    tags: allTags,
-                    documents: allDocuments.map(doc => ({
-                        ...doc,
-                        file_url: null // Don't export file URLs for security
-                    })),
-                    users: allUsers.map(user => ({
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        role: user.role
-                    })),
-                    exported_at: new Date().toISOString()
+        async function handleDevLogin(e) {
+            e.preventDefault();
+            const devKey = document.getElementById('devKey').value;
+            
+            if (devKey === 'dev-master-key-2024' || devKey === 'admin') {
+                currentDevUser = {
+                    id: 'dev-admin',
+                    name: "Dev Admin",
+                    role: "super_admin"
                 };
-
-                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `justarchiv_export_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                showToast('Données exportées avec succès !', 'success');
-            } catch (error) {
-                console.error('Erreur export:', error);
-                showToast('Erreur lors de l\'export', 'error');
+                
+                showToast('Accès développeur autorisé', 'success');
+                showDevDashboard();
+            } else {
+                showToast('Clé d\'accès invalide', 'error');
             }
         }
 
-        async function resetDatabase() {
-            if (!confirm('⚠️ ATTENTION: Cette action supprimera TOUTES les données. Êtes-vous sûr ?')) return;
-            if (!confirm('Cette action est IRRÉVERSIBLE. Confirmez-vous ?')) return;
-
+        async function userLogout() {
             try {
-                await supabase.from('document_tags').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                await supabase.from('documents').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                await supabase.from('categories').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                await supabase.from('tags').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-                await supabase.from('activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-                showToast('Base de données réinitialisée', 'warning');
-                loadAllData();
+                if (supabase && !isOfflineMode) {
+                    await supabase.auth.signOut();
+                }
+                
+                currentUser = null;
+                showToast('Déconnexion réussie', 'success');
+                showUserLogin();
             } catch (error) {
-                console.error('Erreur reset:', error);
-                showToast('Erreur lors de la réinitialisation', 'error');
+                showToast('Erreur lors de la déconnexion', 'error');
             }
         }
 
-        // Data loading functions
-        async function loadAllData() {
-            if (!supabase) return;
+        function devLogout() {
+            currentDevUser = null;
+            showToast('Déconnexion développeur', 'success');
+            showUserLogin();
+        }
 
+        // UI Navigation functions
+        function showUserLogin() {
+            hideAllScreens();
+            document.getElementById('userLoginScreen').classList.remove('hidden');
+        }
+
+        function showRegister() {
+            hideAllScreens();
+            document.getElementById('userRegisterScreen').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            hideAllScreens();
+            document.getElementById('userLoginScreen').classList.remove('hidden');
+        }
+
+        function showDevAccess() {
+            hideAllScreens();
+            document.getElementById('devLoginScreen').classList.remove('hidden');
+        }
+
+        function backToUserLogin() {
+            hideAllScreens();
+            document.getElementById('userLoginScreen').classList.remove('hidden');
+        }
+
+        function showUserDashboard() {
+            hideAllScreens();
+            document.getElementById('userDashboard').classList.remove('hidden');
+            
+            // Update user info
+            if (currentUser) {
+                const userName = currentUser.user_metadata?.full_name || currentUser.email || 'Utilisateur';
+                const userEmail = currentUser.email || 'email@example.com';
+                
+                document.getElementById('currentUserName').textContent = userName;
+                document.getElementById('currentUserEmail').textContent = userEmail;
+            }
+            
+            // Show dashboard by default
+            showUserSection('dashboard');
+            loadUserData();
+        }
+
+        function showDevDashboard() {
+            hideAllScreens();
+            document.getElementById('devDashboard').classList.remove('hidden');
+        }
+
+        function hideAllScreens() {
+            document.getElementById('userLoginScreen').classList.add('hidden');
+            document.getElementById('userRegisterScreen').classList.add('hidden');
+            document.getElementById('devLoginScreen').classList.add('hidden');
+            document.getElementById('userDashboard').classList.add('hidden');
+            document.getElementById('devDashboard').classList.add('hidden');
+        }
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            
             try {
-                await Promise.all([
-                    loadCategories(),
-                    loadTags(),
-                    loadDocuments(),
-                    loadUsers()
-                ]);
+                if (supabase && !isOfflineMode) {
+                    // Load user documents
+                    const { data: docs, error: docsError } = await supabase
+                        .from('documents')
+                        .select('*')
+                        .eq('user_id', currentUser.id);
+                    
+                    if (!docsError) {
+                        documents = docs || [];
+                    }
+                    
+                    // Load user categories
+                    const { data: cats, error: catsError } = await supabase
+                        .from('categories')
+                        .select('*')
+                        .eq('user_id', currentUser.id);
+                    
+                    if (!catsError) {
+                        categories = cats || [];
+                    }
+                }
+                
                 updateDashboardStats();
             } catch (error) {
-                console.error('Erreur chargement données:', error);
-            }
-        }
-
-        async function loadCategories() {
-            try {
-                const { data: categories, error } = await supabase
-                    .from('categories')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                allCategories = categories || [];
-                displayCategories();
-                updateCategorySelects();
-
-            } catch (error) {
-                console.error('Erreur chargement catégories:', error);
-            }
-        }
-
-        async function loadTags() {
-            try {
-                const { data: tags, error } = await supabase
-                    .from('tags')
-                    .select('*')
-                    .order('name');
-
-                if (error) throw error;
-
-                allTags = tags || [];
-                displayTags();
-                updateTagFilters();
-
-            } catch (error) {
-                console.error('Erreur chargement tags:', error);
-            }
-        }
-
-        async function loadDocuments() {
-            try {
-                const { data: documents, error } = await supabase
-                    .from('documents')
-                    .select(`
-                        *,
-                        categories (name, color),
-                        users (name),
-                        document_tags (
-                            tags (id, name, color)
-                        )
-                    `)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                allDocuments = documents || [];
-                displayDocuments();
-
-            } catch (error) {
-                console.error('Erreur chargement documents:', error);
-            }
-        }
-
-        async function loadUsers() {
-            try {
-                if (userProfile?.role !== 'vip' && userProfile?.role !== 'admin') return;
-
-                const { data: users, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                allUsers = users || [];
-                displayUsers();
-                updateUserFilters();
-
-            } catch (error) {
-                console.error('Erreur chargement utilisateurs:', error);
-            }
-        }
-
-        // Display functions
-        function displayCategories() {
-            const grid = document.getElementById('categories-grid');
-            
-            if (allCategories.length > 0) {
-                grid.innerHTML = allCategories.map(category => `
-                    <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-${category.color}-500">
-                        <div class="flex items-center mb-4">
-                            <span class="text-4xl mr-4">📁</span>
-                            <div class="flex-1">
-                                <h3 class="text-xl font-bold text-gray-800">${category.name}</h3>
-                                <p class="text-sm text-gray-500">${getDocumentCountByCategory(category.id)} documents</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-600 mb-4">${category.description || 'Aucune description'}</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-500 bg-${category.color}-100 text-${category.color}-800 px-3 py-1 rounded-full">
-                                ${category.color}
-                            </span>
-                            <div class="flex space-x-2">
-                                <button onclick="editCategory('${category.id}')" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
-                                    ✏️ Modifier
-                                </button>
-                                <button onclick="deleteCategory('${category.id}')" class="text-red-600 hover:text-red-800 font-medium text-sm">
-                                    🗑️ Supprimer
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">📁</span>
-                        <p class="text-xl mb-4">Aucune catégorie créée</p>
-                        <button onclick="openCategoryModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Créer votre première catégorie
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function displayTags() {
-            const grid = document.getElementById('tags-grid');
-            
-            if (allTags.length > 0) {
-                grid.innerHTML = allTags.map(tag => `
-                    <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border-l-4 border-${tag.color}-500">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="tag bg-${tag.color}-100 text-${tag.color}-800 font-medium">${tag.name}</span>
-                            <span class="text-xs text-gray-500">${getDocumentCountByTag(tag.id)} docs</span>
-                        </div>
-                        <div class="flex justify-end space-x-2">
-                            <button onclick="editTag('${tag.id}')" class="text-blue-600 hover:text-blue-800 text-xs">
-                                ✏️ Modifier
-                            </button>
-                            <button onclick="deleteTag('${tag.id}')" class="text-red-600 hover:text-red-800 text-xs">
-                                🗑️ Supprimer
-                            </button>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">🏷️</span>
-                        <p class="text-xl mb-4">Aucun tag créé</p>
-                        <button onclick="openTagModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Créer votre premier tag
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function displayDocuments() {
-            const grid = document.getElementById('documents-grid');
-            
-            if (allDocuments.length > 0) {
-                grid.innerHTML = allDocuments.map(doc => `
-                    <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                        <div class="p-4">
-                            <div class="flex items-center mb-3">
-                                <div class="text-3xl mr-3">${getFileIcon(doc.file_type)}</div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-800 text-sm truncate">${doc.name}</h3>
-                                    <p class="text-xs text-gray-500">${doc.categories?.name || 'Sans catégorie'}</p>
-                                    <p class="text-xs text-gray-400">par ${doc.users?.name || 'Inconnu'}</p>
-                                </div>
-                                <div class="text-xs">
-                                    ${doc.visibility === 'private' ? '🔒' : doc.visibility === 'team' ? '👥' : '🌍'}
-                                </div>
-                            </div>
-                            
-                            ${doc.description ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${doc.description}</p>` : ''}
-                            
-                            ${doc.document_tags && doc.document_tags.length > 0 ? `
-                                <div class="mb-3">
-                                    ${doc.document_tags.map(dt => `<span class="tag bg-${dt.tags.color}-100 text-${dt.tags.color}-800">${dt.tags.name}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                                <span>${doc.file_size ? formatFileSize(doc.file_size) : 'N/A'}</span>
-                                <span>${new Date(doc.created_at).toLocaleDateString('fr-FR')}</span>
-                            </div>
-                            
-                            <div class="flex space-x-1">
-                                ${doc.file_url ? `<button onclick="window.open('${doc.file_url}', '_blank')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 px-2 rounded transition-all">👁️</button>` : ''}
-                                <button onclick="editDocument('${doc.id}')" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs py-2 px-2 rounded transition-all">✏️</button>
-                                <button onclick="deleteDocument('${doc.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs py-2 px-2 rounded transition-all">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">📄</span>
-                        <p class="text-xl mb-4">Aucun document trouvé</p>
-                        <button onclick="openDocumentModal()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Ajouter votre premier document
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function displayUsers() {
-            const tbody = document.getElementById('users-table');
-            
-            if (allUsers.length > 0) {
-                tbody.innerHTML = allUsers.map(user => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="text-2xl mr-3">${user.role === 'vip' ? '🌟' : user.role === 'admin' ? '👨‍💼' : '👤'}</div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">${user.name}</div>
-                                    <div class="text-sm text-gray-500">${user.email}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full ${getRoleClass(user.role)}">
-                                ${getRoleLabel(user.role)}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${getDocumentCountByUser(user.id)}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            ${user.last_login ? new Date(user.last_login).toLocaleDateString('fr-FR') : 'Jamais'}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button onclick="editUser('${user.id}')" class="text-blue-600 hover:text-blue-900">Modifier</button>
-                            ${user.id !== currentUser.id ? `<button onclick="deleteUser('${user.id}')" class="text-red-600 hover:text-red-900">Supprimer</button>` : ''}
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                            <span class="text-4xl block mb-2">👥</span>
-                            <p>Aucun utilisateur trouvé</p>
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        // Helper functions
-        function getDocumentCountByCategory(categoryId) {
-            return allDocuments.filter(doc => doc.category_id === categoryId).length;
-        }
-
-        function getDocumentCountByTag(tagId) {
-            return allDocuments.filter(doc => 
-                doc.document_tags && doc.document_tags.some(dt => dt.tags.id === tagId)
-            ).length;
-        }
-
-        function getDocumentCountByUser(userId) {
-            return allDocuments.filter(doc => doc.user_id === userId).length;
-        }
-
-        function getRoleClass(role) {
-            switch (role) {
-                case 'vip': return 'bg-purple-100 text-purple-800';
-                case 'admin': return 'bg-red-100 text-red-800';
-                default: return 'bg-blue-100 text-blue-800';
-            }
-        }
-
-        function getRoleLabel(role) {
-            switch (role) {
-                case 'vip': return '🌟 VIP';
-                case 'admin': return '👨‍💼 Admin';
-                default: return '👤 Utilisateur';
+                console.error('Erreur lors du chargement des données:', error);
             }
         }
 
         function updateDashboardStats() {
-            document.getElementById('stats-documents').textContent = allDocuments.length;
-            document.getElementById('stats-categories').textContent = allCategories.length;
-            document.getElementById('stats-tags').textContent = allTags.length;
-            document.getElementById('stats-users').textContent = allUsers.length;
-        }
-
-        function updateCategorySelects() {
-            const selects = ['document-category', 'category-filter'];
-            selects.forEach(selectId => {
-                const select = document.getElementById(selectId);
-                if (select) {
-                    const currentValue = select.value;
-                    select.innerHTML = selectId === 'category-filter' 
-                        ? '<option value="">Toutes les catégories</option>' 
-                        : '<option value="">Sélectionner une catégorie</option>';
-                    
-                    allCategories.forEach(category => {
-                        select.innerHTML += `<option value="${category.id}">${category.name}</option>`;
-                    });
-                    select.value = currentValue;
-                }
-            });
-        }
-
-        function updateUserFilters() {
-            const select = document.getElementById('user-filter');
-            if (select) {
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">Tous les utilisateurs</option>';
-                
-                allUsers.forEach(user => {
-                    select.innerHTML += `<option value="${user.id}">${user.name}</option>`;
-                });
-                select.value = currentValue;
-            }
-        }
-
-        function updateTagFilters() {
-            const container = document.getElementById('tag-filters');
-            if (container) {
-                container.innerHTML = allTags.map(tag => `
-                    <button onclick="toggleTagFilter('${tag.id}')" class="tag bg-${tag.color}-100 text-${tag.color}-800 hover:bg-${tag.color}-200 transition-all cursor-pointer" data-tag-id="${tag.id}">
-                        ${tag.name}
-                    </button>
-                `).join('');
-            }
-
-            const availableTags = document.getElementById('available-tags');
-            if (availableTags) {
-                availableTags.innerHTML = allTags.map(tag => `
-                    <button onclick="addTagToDocument('${tag.name}')" class="tag bg-${tag.color}-100 text-${tag.color}-800 hover:bg-${tag.color}-200 transition-all cursor-pointer">
-                        ${tag.name}
-                    </button>
-                `).join('');
-            }
-        }
-
-        // Continue with remaining functions...
-        // [The script continues with all the CRUD operations, modal functions, etc.]
-        // Due to length constraints, I'll provide the key remaining functions:
-
-        // Modal functions
-        function openDocumentModal() {
-            resetDocumentForm();
-            document.getElementById('document-modal').classList.add('active');
-            updateTagFilters();
-        }
-
-        function openCategoryModal() {
-            resetCategoryForm();
-            document.getElementById('category-modal').classList.add('active');
-        }
-
-        function openTagModal() {
-            resetTagForm();
-            document.getElementById('tag-modal').classList.add('active');
-        }
-
-        function openUserModal() {
-            resetUserForm();
-            document.getElementById('user-modal').classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Reset form functions
-        function resetDocumentForm() {
-            document.getElementById('document-form').reset();
-            document.getElementById('document-id').value = '';
-            document.getElementById('document-submit-text').textContent = 'Ajouter';
-            selectedTags = [];
-            updateSelectedTags();
-        }
-
-        function resetCategoryForm() {
-            document.getElementById('category-form').reset();
-            document.getElementById('category-id').value = '';
-            document.getElementById('category-submit-text').textContent = 'Créer';
-            selectColor('blue');
-        }
-
-        function resetTagForm() {
-            document.getElementById('tag-form').reset();
-            document.getElementById('tag-id').value = '';
-            document.getElementById('tag-submit-text').textContent = 'Créer';
-            selectTagColor('gray');
-        }
-
-        function resetUserForm() {
-            document.getElementById('user-form').reset();
-            document.getElementById('user-id').value = '';
-            document.getElementById('user-submit-text').textContent = 'Créer';
-        }
-
-        // Color selection functions
-        function selectColor(color) {
-            document.getElementById('category-color').value = color;
-            document.querySelectorAll('[onclick^="selectColor"]').forEach(btn => {
-                btn.classList.remove('border-gray-800');
-                btn.classList.add('border-gray-300');
-            });
-            event?.target?.classList?.remove('border-gray-300');
-            event?.target?.classList?.add('border-gray-800');
-        }
-
-        function selectTagColor(color) {
-            document.getElementById('tag-color').value = color;
-            document.querySelectorAll('[onclick^="selectTagColor"]').forEach(btn => {
-                btn.classList.remove('border-gray-800');
-                btn.classList.add('border-gray-300');
-            });
-            event?.target?.classList?.remove('border-gray-300');
-            event?.target?.classList?.add('border-gray-800');
-        }
-
-        // Tag management for documents
-        function addTagToDocument(tagName) {
-            if (!tagName || selectedTags.includes(tagName)) return;
+            document.getElementById('userDocCount').textContent = documents.length;
+            document.getElementById('userCatCount').textContent = categories.length;
             
-            selectedTags.push(tagName);
-            updateSelectedTags();
+            // Calculate storage used (simplified)
+            const totalSize = documents.reduce((sum, doc) => sum + (doc.size || 0), 0);
+            const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
+            document.getElementById('userStorageUsed').textContent = `${sizeInMB} MB`;
+            
+            // Update storage progress
+            const maxStorage = 1024; // 1GB in MB
+            const percentage = Math.min((sizeInMB / maxStorage) * 100, 100);
+            document.getElementById('storageProgress').style.width = `${percentage}%`;
+            document.getElementById('storageText').textContent = `${percentage.toFixed(1)}% de 1 GB`;
+            
+            // Update last activity
+            if (documents.length > 0) {
+                const lastDoc = documents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                const lastActivity = new Date(lastDoc.created_at);
+                const now = new Date();
+                const diffHours = Math.floor((now - lastActivity) / (1000 * 60 * 60));
+                
+                if (diffHours < 1) {
+                    document.getElementById('lastActivity').textContent = 'Maintenant';
+                } else if (diffHours < 24) {
+                    document.getElementById('lastActivity').textContent = `Il y a ${diffHours}h`;
+                } else {
+                    document.getElementById('lastActivity').textContent = 'Aujourd\'hui';
+                }
+            }
         }
 
-        function removeTagFromDocument(tagName) {
-            selectedTags = selectedTags.filter(tag => tag !== tagName);
-            updateSelectedTags();
+        function showUserSection(sectionName) {
+            // Hide all user sections
+            const sections = ['dashboard', 'documents', 'upload', 'categories', 'search', 'profile'];
+            sections.forEach(section => {
+                const element = document.getElementById('user' + section.charAt(0).toUpperCase() + section.slice(1) + 'Section');
+                if (element) element.classList.add('hidden');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById('user' + sectionName.charAt(0).toUpperCase() + sectionName.slice(1) + 'Section');
+            if (targetSection) targetSection.classList.remove('hidden');
+            
+            // Update page title
+            const titles = {
+                dashboard: 'Tableau de bord',
+                documents: 'Mes documents',
+                upload: 'Ajouter des documents',
+                categories: 'Catégories',
+                search: 'Recherche avancée',
+                profile: 'Mon profil'
+            };
+            document.getElementById('userPageTitle').textContent = titles[sectionName];
+            
+            // Update navigation
+            document.querySelectorAll('.user-nav-item').forEach(item => {
+                item.classList.remove('bg-blue-50', 'text-blue-700');
+                item.classList.add('text-gray-700', 'hover:bg-gray-100');
+            });
+            
+            // Highlight current nav item
+            const currentNavItem = document.querySelector(`[onclick="showUserSection('${sectionName}')"]`);
+            if (currentNavItem) {
+                currentNavItem.classList.remove('text-gray-700', 'hover:bg-gray-100');
+                currentNavItem.classList.add('bg-blue-50', 'text-blue-700');
+            }
+            
+            // Close sidebar on mobile
+            if (window.innerWidth < 1024) {
+                toggleUserSidebar();
+            }
         }
 
-        function updateSelectedTags() {
-            const container = document.getElementById('selected-tags');
-            container.innerHTML = selectedTags.map(tagName => {
-                const tag = allTags.find(t => t.name === tagName);
-                const color = tag ? tag.color : 'gray';
-                return `
-                    <span class="tag bg-${color}-100 text-${color}-800 cursor-pointer" onclick="removeTagFromDocument('${tagName}')">
-                        ${tagName} ×
-                    </span>
-                `;
-            }).join('');
+        function toggleUserSidebar() {
+            const sidebar = document.getElementById('userSidebar');
+            userSidebarOpen = !userSidebarOpen;
+            
+            if (userSidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        function toggleUserTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark');
+            
+            const themeIcon = document.getElementById('userThemeIcon');
+            if (themeIcon) {
+                if (isDarkMode) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                    localStorage.setItem('justarchiv_theme', 'dark');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                    localStorage.setItem('justarchiv_theme', 'light');
+                }
+            }
+        }
+
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            const button = input.nextElementSibling.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.classList.remove('fa-eye');
+                button.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                button.classList.remove('fa-eye-slash');
+                button.classList.add('fa-eye');
+            }
+        }
+
+        function showPasswordReset() {
+            showToast('Fonctionnalité de récupération en cours de développement', 'info');
+        }
+
+        function quickSearch(query) {
+            if (query.length < 2) return;
+            console.log('Recherche rapide:', query);
+            // TODO: Implement real search
         }
 
         // Utility functions
-        function getFileIcon(fileType) {
-            if (!fileType) return '📄';
-            if (fileType.startsWith('image/')) return '🖼️';
-            if (fileType === 'application/pdf') return '📕';
-            if (fileType.includes('word')) return '📘';
-            if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
-            if (fileType.includes('powerpoint') || fileType.includes('presentation')) return '📈';
-            return '📄';
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function updateFilePreview(file) {
-            const dropZone = document.getElementById('file-drop-zone');
-            dropZone.innerHTML = `
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white border-l-4 p-4 rounded-lg shadow-lg max-w-sm fade-in`;
+            
+            const colors = {
+                success: 'border-green-500',
+                error: 'border-red-500',
+                warning: 'border-yellow-500',
+                info: 'border-blue-500'
+            };
+            
+            const icons = {
+                success: 'fas fa-check-circle text-green-500',
+                error: 'fas fa-exclamation-circle text-red-500',
+                warning: 'fas fa-exclamation-triangle text-yellow-500',
+                info: 'fas fa-info-circle text-blue-500'
+            };
+            
+            toast.classList.add(colors[type]);
+            
+            toast.innerHTML = `
                 <div class="flex items-center space-x-3">
-                    <span class="text-3xl">${getFileIcon(file.type)}</span>
-                    <div>
-                        <p class="font-medium text-gray-800">${file.name}</p>
-                        <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
-                    </div>
+                    <i class="${icons[type]}"></i>
+                    <p class="text-gray-900 font-medium">${message}</p>
                 </div>
             `;
-        }
-
-        // Filter functions
-        function filterDocuments() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const categoryFilter = document.getElementById('category-filter').value;
-            const userFilter = document.getElementById('user-filter').value;
-
-            let filtered = allDocuments;
-
-            if (searchTerm) {
-                filtered = filtered.filter(doc => 
-                    doc.name.toLowerCase().includes(searchTerm) ||
-                    (doc.description && doc.description.toLowerCase().includes(searchTerm))
-                );
-            }
-
-            if (categoryFilter) {
-                filtered = filtered.filter(doc => doc.category_id === categoryFilter);
-            }
-
-            if (userFilter) {
-                filtered = filtered.filter(doc => doc.user_id === userFilter);
-            }
-
-            // Apply tag filters
-            const selectedTagFilters = Array.from(document.querySelectorAll('[data-tag-id].selected')).map(el => el.dataset.tagId);
-            if (selectedTagFilters.length > 0) {
-                filtered = filtered.filter(doc => 
-                    doc.document_tags && doc.document_tags.some(dt => selectedTagFilters.includes(dt.tags.id))
-                );
-            }
-
-            // Update display with filtered results
-            displayFilteredDocuments(filtered);
-        }
-
-        function displayFilteredDocuments(documents) {
-            const grid = document.getElementById('documents-grid');
             
-            if (documents.length > 0) {
-                grid.innerHTML = documents.map(doc => `
-                    <div class="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
-                        <div class="p-4">
-                            <div class="flex items-center mb-3">
-                                <div class="text-3xl mr-3">${getFileIcon(doc.file_type)}</div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-gray-800 text-sm truncate">${doc.name}</h3>
-                                    <p class="text-xs text-gray-500">${doc.categories?.name || 'Sans catégorie'}</p>
-                                    <p class="text-xs text-gray-400">par ${doc.users?.name || 'Inconnu'}</p>
-                                </div>
-                                <div class="text-xs">
-                                    ${doc.visibility === 'private' ? '🔒' : doc.visibility === 'team' ? '👥' : '🌍'}
-                                </div>
-                            </div>
-                            
-                            ${doc.description ? `<p class="text-sm text-gray-600 mb-3 line-clamp-2">${doc.description}</p>` : ''}
-                            
-                            ${doc.document_tags && doc.document_tags.length > 0 ? `
-                                <div class="mb-3">
-                                    ${doc.document_tags.map(dt => `<span class="tag bg-${dt.tags.color}-100 text-${dt.tags.color}-800">${dt.tags.name}</span>`).join('')}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="flex justify-between items-center text-xs text-gray-500 mb-3">
-                                <span>${doc.file_size ? formatFileSize(doc.file_size) : 'N/A'}</span>
-                                <span>${new Date(doc.created_at).toLocaleDateString('fr-FR')}</span>
-                            </div>
-                            
-                            <div class="flex space-x-1">
-                                ${doc.file_url ? `<button onclick="window.open('${doc.file_url}', '_blank')" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs py-2 px-2 rounded transition-all">👁️</button>` : ''}
-                                <button onclick="editDocument('${doc.id}')" class="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs py-2 px-2 rounded transition-all">✏️</button>
-                                <button onclick="deleteDocument('${doc.id}')" class="bg-red-500 hover:bg-red-600 text-white text-xs py-2 px-2 rounded transition-all">🗑️</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center text-gray-500 py-16">
-                        <span class="text-6xl mb-4 block">🔍</span>
-                        <p class="text-xl mb-4">Aucun document trouvé</p>
-                        <button onclick="clearFilters()" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Effacer les filtres
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        function toggleTagFilter(tagId) {
-            const button = document.querySelector(`[data-tag-id="${tagId}"]`);
-            if (button) {
-                button.classList.toggle('selected');
-                filterDocuments();
-            }
-        }
-
-        function clearFilters() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('category-filter').value = '';
-            document.getElementById('user-filter').value = '';
-            document.querySelectorAll('[data-tag-id].selected').forEach(el => el.classList.remove('selected'));
-            displayDocuments();
-        }
-
-        // Form submission handlers
-        async function handleDocumentSubmit(e) {
-            e.preventDefault();
+            document.getElementById('toastContainer').appendChild(toast);
             
-            const docId = document.getElementById('document-id').value;
-            const formData = {
-                name: document.getElementById('document-name').value,
-                description: document.getElementById('document-description').value,
-                category_id: document.getElementById('document-category').value || null,
-                visibility: document.querySelector('input[name="doc-visibility"]:checked')?.value || 'private',
-                tags: selectedTags
-            };
-
-            const fileInput = document.getElementById('document-file');
-            if (fileInput.files.length > 0) {
-                formData.file = fileInput.files[0];
-            }
-
-            if (docId) {
-                await updateDocument(docId, formData);
-            } else {
-                await addDocument(formData);
-            }
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
         }
 
-        async function handleCategorySubmit(e) {
-            e.preventDefault();
+        function copyDatabaseScript() {
+            const scriptElement = document.getElementById('databaseScript');
+            const scriptText = scriptElement.textContent;
             
-            const catId = document.getElementById('category-id').value;
-            const formData = {
-                name: document.getElementById('category-name').value,
-                description: document.getElementById('category-description').value,
-                color: document.getElementById('category-color').value
-            };
-
-            if (catId) {
-                await updateCategory(catId, formData);
-            } else {
-                await addCategory(formData);
-            }
+            navigator.clipboard.writeText(scriptText).then(() => {
+                showToast('Script SQL copié dans le presse-papiers !', 'success');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = scriptText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('Script SQL copié !', 'success');
+            });
         }
 
-        async function handleTagSubmit(e) {
-            e.preventDefault();
-            
-            const tagId = document.getElementById('tag-id').value;
-            const formData = {
-                name: document.getElementById('tag-name').value,
-                color: document.getElementById('tag-color').value
-            };
-
-            if (tagId) {
-                await updateTag(tagId, formData);
-            } else {
-                await addTag(formData);
-            }
-        }
-
-        async function handleUserSubmit(e) {
-            e.preventDefault();
-            
-            const userId = document.getElementById('user-id').value;
-            const formData = {
-                name: document.getElementById('user-name').value,
-                email: document.getElementById('user-email').value,
-                role: document.getElementById('make-vip').checked ? 'vip' : document.getElementById('user-role').value
-            };
-
-            if (userId) {
-                await updateUser(userId, formData);
-            } else {
-                await addUser(formData);
-            }
-        }
-
-        // CRUD operations would continue here...
-        // [Additional CRUD functions for documents, categories, tags, users]
-
-        // System settings
-        function saveSystemSettings() {
-            const settings = {
-                publicRegistration: document.getElementById('public-registration').checked,
-                documentValidation: document.getElementById('document-validation').checked,
-                emailNotifications: document.getElementById('email-notifications').checked
-            };
-            
-            localStorage.setItem('system-settings', JSON.stringify(settings));
-            showToast('Paramètres système sauvegardés !', 'success');
-        }
-
-        // SQL Console (VIP only)
-        async function executeSQLQuery() {
-            if (userProfile?.role !== 'vip') {
-                showToast('Accès refusé - VIP uniquement', 'error');
-                return;
-            }
-
-            const query = document.getElementById('sql-query').value.trim();
-            if (!query) {
-                showToast('Veuillez saisir une requête SQL', 'error');
-                return;
-            }
-
-            try {
-                const { data, error } = await supabase.rpc('execute_sql', { query });
-                
-                const resultsDiv = document.getElementById('sql-results');
-                if (error) {
-                    resultsDiv.innerHTML = `<div class="text-red-600">Erreur: ${error.message}</div>`;
-                } else {
-                    resultsDiv.innerHTML = `<pre class="text-green-600">${JSON.stringify(data, null, 2)}</pre>`;
-                }
-            } catch (error) {
-                document.getElementById('sql-results').innerHTML = `<div class="text-red-600">Erreur: ${error.message}</div>`;
-            }
-        }
-
-        function clearSQLConsole() {
-            document.getElementById('sql-query').value = '';
-            document.getElementById('sql-results').innerHTML = '';
-        }
-
-        // Initialize on page load
-        window.addEventListener('load', () => {
-            // Load saved Supabase config
-            const savedUrl = localStorage.getItem('supabase-url');
-            const savedKey = localStorage.getItem('supabase-key');
-            if (savedUrl) document.getElementById('supabase-url').value = savedUrl;
-            if (savedKey) document.getElementById('supabase-key').value = savedKey;
-
-            // Load system settings
-            const savedSettings = localStorage.getItem('system-settings');
-            if (savedSettings) {
-                const settings = JSON.parse(savedSettings);
-                document.getElementById('public-registration').checked = settings.publicRegistration || false;
-                document.getElementById('document-validation').checked = settings.documentValidation || false;
-                document.getElementById('email-notifications').checked = settings.emailNotifications || false;
-            }
-        });
-
-        // Placeholder CRUD functions (implement as needed)
-        async function addDocument(formData) { /* Implementation */ }
-        async function updateDocument(id, formData) { /* Implementation */ }
-        async function deleteDocument(id) { /* Implementation */ }
-        async function editDocument(id) { /* Implementation */ }
-
-        async function addCategory(formData) { /* Implementation */ }
-        async function updateCategory(id, formData) { /* Implementation */ }
-        async function deleteCategory(id) { /* Implementation */ }
-        async function editCategory(id) { /* Implementation */ }
-
-        async function addTag(formData) { /* Implementation */ }
-        async function updateTag(id, formData) { /* Implementation */ }
-        async function deleteTag(id) { /* Implementation */ }
-        async function editTag(id) { /* Implementation */ }
-
-        async function addUser(formData) { /* Implementation */ }
-        async function updateUser(id, formData) { /* Implementation */ }
-        async function deleteUser(id) { /* Implementation */ }
-        async function editUser(id) { /* Implementation */ }
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97c9626a5784488f',t:'MTc1NzQ0OTIwNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d8ec9db33ee3cc',t:'MTc1NzYxMjE1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
