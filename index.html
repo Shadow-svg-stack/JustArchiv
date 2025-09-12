@@ -3,1678 +3,1686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustArchiv - Gestionnaire de Documents</title>
+    <title>JArchiv - Gestionnaire de Documents Sécurisé</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.3s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .slide-in {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(-100%); }
-            to { transform: translateX(0); }
-        }
-        
-        .toast {
-            animation: toastSlide 0.3s ease-out;
-        }
-        
-        @keyframes toastSlide {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
-        .sidebar-transition {
-            transition: transform 0.3s ease-in-out;
-        }
-        
-        .dark .bg-white { background-color: #1f2937; }
-        .dark .text-gray-900 { color: #f9fafb; }
-        .dark .text-gray-600 { color: #d1d5db; }
-        .dark .border-gray-200 { border-color: #374151; }
-        .dark .bg-gray-50 { background-color: #111827; }
-        .dark .bg-gray-100 { background-color: #1f2937; }
-        
-        .code-editor {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            background: #1e1e1e;
-            color: #d4d4d4;
-        }
-        
-        .status-indicator {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .metric-card {
-            transition: all 0.3s ease;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        
-        .log-entry {
-            border-left: 4px solid transparent;
-        }
-        
-        .log-entry.error { border-left-color: #ef4444; }
-        .log-entry.warning { border-left-color: #f59e0b; }
-        .log-entry.info { border-left-color: #3b82f6; }
-        .log-entry.success { border-left-color: #10b981; }
-        
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-        
-        .progress-ring {
-            transform: rotate(-90deg);
-        }
-        
-        .progress-ring-circle {
-            transition: stroke-dashoffset 0.35s;
-            transform-origin: 50% 50%;
-        }
-        
-        .document-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .document-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        
-        .upload-zone {
-            border: 2px dashed #d1d5db;
-            transition: all 0.3s ease;
-        }
-        
-        .upload-zone.dragover {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        
-        .category-badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-        
-        .search-highlight {
-            background-color: #fef3c7;
-            padding: 0.125rem 0.25rem;
-            border-radius: 0.25rem;
-        }
-
-        .connection-status {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .connection-status.connected {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-
-        .connection-status.disconnected {
-            background-color: #fef2f2;
-            color: #dc2626;
-        }
-
-        .connection-status.connecting {
-            background-color: #fef3c7;
-            color: #d97706;
-        }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+        .toast { animation: toastSlide 0.3s ease-out; }
+        @keyframes toastSlide { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .dark { background: #1a1a1a; color: #ffffff; }
+        .dark .bg-white { background: #2a2a2a !important; }
+        .dark .text-gray-900 { color: #ffffff !important; }
+        .dark .border-gray-200 { border-color: #404040 !important; }
+        .pulse-security { animation: pulseRed 2s infinite; }
+        @keyframes pulseRed { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .chart-type-btn { transition: all 0.2s ease; }
+        .chart-type-btn:hover { background-color: #f3f4f6; }
+        .chart-type-btn.active { background-color: #dbeafe; color: #2563eb; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .admin-tab { transition: all 0.2s ease; }
+        .admin-tab.active { background-color: #dbeafe; color: #2563eb; border-color: #2563eb; }
+        .status-indicator { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="bg-gray-50 transition-colors duration-300">
-    <!-- Toast Notifications -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    <!-- Variables d'environnement simulées -->
+    <script>
+        const ENV = {
+            SUPABASE_URL: 'https://ymjvotvqgylpooslwcev.supabase.co',
+            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InltanZvdHZxZ3lscG9vc2x3Y2V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2MTMwMjQsImV4cCI6MjA3MzE4OTAyNH0.MO0Yzhp6x9rLhfNPFsEOclHe4mJlcnswCJyWqlDd3ac'
+        };
+        const supabase = window.supabase.createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY);
+    </script>
 
-    <!-- Supabase Setup Modal -->
-    <div id="supabaseSetupModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl fade-in">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-r from-green-600 to-blue-600 w-12 h-12 rounded-full flex items-center justify-center">
-                        <i class="fas fa-database text-white text-xl"></i>
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span>Chargement...</span>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-purple-700">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md fade-in">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center mb-4">
+                    <div class="bg-blue-100 p-3 rounded-full mr-3">
+                        <i class="fas fa-shield-alt text-blue-600 text-2xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-900">Configuration Supabase</h3>
-                        <p class="text-gray-600">Configurez votre connexion à la base de données</p>
+                        <h1 class="text-3xl font-bold text-gray-900">JArchiv</h1>
+                        <p class="text-sm text-gray-600">Sécurisé & Chiffré</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="p-6">
-                <div class="mb-6">
-                    <div id="connectionStatus" class="connection-status disconnected">
-                        <i class="fas fa-times-circle mr-2"></i>
-                        <span>Non connecté</span>
-                    </div>
-                </div>
 
-                <form id="supabaseSetupForm" class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">URL du projet Supabase</label>
-                        <input type="url" id="setupSupabaseUrl" required 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                               placeholder="https://votre-projet.supabase.co">
-                        <p class="text-xs text-gray-500 mt-1">Trouvez cette URL dans les paramètres de votre projet Supabase</p>
+            <!-- Indicateur de sécurité -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-6">
+                <div class="flex items-center">
+                    <i class="fas fa-lock text-green-600 mr-2"></i>
+                    <span class="text-sm text-green-800">Connexion sécurisée SSL/TLS</span>
+                </div>
+            </div>
+
+            <!-- Indicateur de force du mot de passe -->
+            <div id="password-strength" class="hidden mb-4">
+                <div class="flex items-center justify-between text-sm mb-1">
+                    <span>Force du mot de passe</span>
+                    <span id="strength-text" class="font-medium">Faible</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div id="strength-bar" class="h-2 rounded-full transition-all duration-300 bg-red-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div id="auth-tabs" class="flex mb-6 bg-gray-100 rounded-lg p-1">
+                <button onclick="switchAuthTab('login')" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors auth-tab active bg-white shadow-sm">
+                    Connexion
+                </button>
+                <button onclick="switchAuthTab('register')" class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors auth-tab">
+                    Inscription
+                </button>
+            </div>
+
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div class="space-y-4">
+                    <div id="name-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                        <input type="text" id="full-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Clé publique (anon key)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
                         <div class="relative">
-                            <input type="password" id="setupSupabaseKey" required 
-                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
-                                   placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                            <button type="button" onclick="togglePasswordVisibility('setupSupabaseKey')" 
-                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-eye"></i>
+                            <input type="password" id="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10" oninput="checkPasswordStrength()">
+                            <button type="button" onclick="togglePassword()" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-eye" id="password-toggle"></i>
                             </button>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Clé publique sécurisée pour l'authentification</p>
-                    </div>
-
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
-                            <div>
-                                <h4 class="font-medium text-blue-900 mb-2">Instructions de configuration</h4>
-                                <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                                    <li>Créez un compte sur <a href="https://supabase.com" target="_blank" class="underline">supabase.com</a></li>
-                                    <li>Créez un nouveau projet</li>
-                                    <li>Allez dans Settings → API</li>
-                                    <li>Copiez l'URL et la clé anon key</li>
-                                    <li>Exécutez le script SQL fourni</li>
-                                </ol>
+                        <div id="password-requirements" class="hidden mt-2 text-xs text-gray-500">
+                            <div class="grid grid-cols-2 gap-1">
+                                <div id="req-length" class="flex items-center">
+                                    <i class="fas fa-times text-red-500 mr-1"></i>
+                                    <span>8+ caractères</span>
+                                </div>
+                                <div id="req-uppercase" class="flex items-center">
+                                    <i class="fas fa-times text-red-500 mr-1"></i>
+                                    <span>Majuscule</span>
+                                </div>
+                                <div id="req-lowercase" class="flex items-center">
+                                    <i class="fas fa-times text-red-500 mr-1"></i>
+                                    <span>Minuscule</span>
+                                </div>
+                                <div id="req-number" class="flex items-center">
+                                    <i class="fas fa-times text-red-500 mr-1"></i>
+                                    <span>Chiffre</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="bg-gray-900 rounded-lg p-4 mb-6">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-white font-medium">Script SQL à exécuter dans Supabase</h4>
-                            <button type="button" onclick="copyDatabaseScript()" class="text-blue-400 hover:text-blue-300 text-sm">
-                                <i class="fas fa-copy mr-1"></i>Copier
+
+                    <div id="confirm-password-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmer le mot de passe</label>
+                        <input type="password" id="confirm-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+
+                    <div id="role-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Rôle demandé</label>
+                        <select id="user-role" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="user">Utilisateur</option>
+                            <option value="editor">Éditeur</option>
+                            <option value="admin">Administrateur</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Les rôles Éditeur et Administrateur nécessitent une approbation</p>
+                    </div>
+
+                    <!-- Captcha simple -->
+                    <div id="captcha-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vérification anti-robot</label>
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-gray-100 px-3 py-2 rounded border font-mono text-lg" id="captcha-question">5 + 3 = ?</div>
+                            <input type="number" id="captcha-answer" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Réponse">
+                            <button type="button" onclick="generateCaptcha()" class="p-2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-refresh"></i>
                             </button>
                         </div>
-                        <div class="bg-black rounded p-3 text-green-400 text-sm font-mono overflow-x-auto max-h-64 overflow-y-auto" id="databaseScript">
--- JustArchiv Database Schema
--- Exécutez ce script dans l'éditeur SQL de Supabase
-
--- Create profiles table
-CREATE TABLE IF NOT EXISTS profiles (
-    id UUID REFERENCES auth.users(id) PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL,
-    full_name TEXT,
-    first_name TEXT,
-    last_name TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create categories table
-CREATE TABLE IF NOT EXISTS categories (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    color TEXT DEFAULT '#3B82F6',
-    icon TEXT DEFAULT 'fas fa-folder',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(user_id, name)
-);
-
--- Create documents table
-CREATE TABLE IF NOT EXISTS documents (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    file_name TEXT NOT NULL,
-    file_path TEXT NOT NULL,
-    file_size BIGINT DEFAULT 0,
-    file_type TEXT NOT NULL,
-    mime_type TEXT,
-    tags TEXT[] DEFAULT '{}',
-    is_favorite BOOLEAN DEFAULT FALSE,
-    is_archived BOOLEAN DEFAULT FALSE,
-    metadata JSONB DEFAULT '{}',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create document_shares table for sharing functionality
-CREATE TABLE IF NOT EXISTS document_shares (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    document_id UUID REFERENCES documents(id) ON DELETE CASCADE NOT NULL,
-    shared_by UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    shared_with UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-    share_token TEXT UNIQUE,
-    permissions TEXT DEFAULT 'read', -- 'read', 'write', 'admin'
-    expires_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Create activity_logs table
-CREATE TABLE IF NOT EXISTS activity_logs (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    action TEXT NOT NULL, -- 'upload', 'download', 'delete', 'share', etc.
-    resource_type TEXT NOT NULL, -- 'document', 'category', etc.
-    resource_id UUID,
-    details JSONB DEFAULT '{}',
-    ip_address INET,
-    user_agent TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Enable Row Level Security
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE document_shares ENABLE ROW LEVEL SECURITY;
-ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
-
--- Profiles policies
-CREATE POLICY "Users can view own profile" ON profiles
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" ON profiles
-    FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Users can insert own profile" ON profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
-
--- Categories policies
-CREATE POLICY "Users can view own categories" ON categories
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create own categories" ON categories
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own categories" ON categories
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own categories" ON categories
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Documents policies
-CREATE POLICY "Users can view own documents" ON documents
-    FOR SELECT USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM document_shares 
-            WHERE document_id = documents.id 
-            AND (shared_with = auth.uid() OR share_token IS NOT NULL)
-            AND (expires_at IS NULL OR expires_at > NOW())
-        )
-    );
-
-CREATE POLICY "Users can create own documents" ON documents
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own documents" ON documents
-    FOR UPDATE USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM document_shares 
-            WHERE document_id = documents.id 
-            AND shared_with = auth.uid()
-            AND permissions IN ('write', 'admin')
-            AND (expires_at IS NULL OR expires_at > NOW())
-        )
-    );
-
-CREATE POLICY "Users can delete own documents" ON documents
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Document shares policies
-CREATE POLICY "Users can view shares for their documents" ON document_shares
-    FOR SELECT USING (
-        auth.uid() = shared_by OR 
-        auth.uid() = shared_with OR
-        EXISTS (SELECT 1 FROM documents WHERE id = document_id AND user_id = auth.uid())
-    );
-
-CREATE POLICY "Users can create shares for their documents" ON document_shares
-    FOR INSERT WITH CHECK (
-        auth.uid() = shared_by AND
-        EXISTS (SELECT 1 FROM documents WHERE id = document_id AND user_id = auth.uid())
-    );
-
-CREATE POLICY "Users can update their shares" ON document_shares
-    FOR UPDATE USING (auth.uid() = shared_by);
-
-CREATE POLICY "Users can delete their shares" ON document_shares
-    FOR DELETE USING (auth.uid() = shared_by);
-
--- Activity logs policies
-CREATE POLICY "Users can view own activity" ON activity_logs
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create own activity" ON activity_logs
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_documents_user_id ON documents(user_id);
-CREATE INDEX IF NOT EXISTS idx_documents_category_id ON documents(category_id);
-CREATE INDEX IF NOT EXISTS idx_documents_created_at ON documents(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_documents_tags ON documents USING GIN(tags);
-CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
-CREATE INDEX IF NOT EXISTS idx_document_shares_document_id ON document_shares(document_id);
-CREATE INDEX IF NOT EXISTS idx_document_shares_shared_with ON document_shares(shared_with);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON activity_logs(created_at DESC);
-
--- Create functions for automatic profile creation
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO public.profiles (id, email, full_name, first_name, last_name)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'first_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'last_name', '')
-    );
-    
-    -- Create default categories
-    INSERT INTO public.categories (user_id, name, description, color, icon) VALUES
-    (NEW.id, 'Documents', 'Documents généraux', '#3B82F6', 'fas fa-file-alt'),
-    (NEW.id, 'Images', 'Photos et images', '#10B981', 'fas fa-image'),
-    (NEW.id, 'Factures', 'Factures et reçus', '#F59E0B', 'fas fa-receipt'),
-    (NEW.id, 'Contrats', 'Contrats et accords', '#8B5CF6', 'fas fa-handshake'),
-    (NEW.id, 'Personnel', 'Documents personnels', '#EF4444', 'fas fa-user');
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Create trigger for new user
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Create function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create triggers for updated_at
-CREATE TRIGGER profiles_updated_at BEFORE UPDATE ON profiles
-    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
-
-CREATE TRIGGER categories_updated_at BEFORE UPDATE ON categories
-    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
-
-CREATE TRIGGER documents_updated_at BEFORE UPDATE ON documents
-    FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
-
--- Enable storage for file uploads
-INSERT INTO storage.buckets (id, name, public) VALUES ('documents', 'documents', false)
-ON CONFLICT (id) DO NOTHING;
-
--- Storage policies
-CREATE POLICY "Users can upload own documents" ON storage.objects
-    FOR INSERT WITH CHECK (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "Users can view own documents" ON storage.objects
-    FOR SELECT USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "Users can update own documents" ON storage.objects
-    FOR UPDATE USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
-
-CREATE POLICY "Users can delete own documents" ON storage.objects
-    FOR DELETE USING (bucket_id = 'documents' AND auth.uid()::text = (storage.foldername(name))[1]);
-
--- Confirmation message
-SELECT 'Base de données JustArchiv créée avec succès! 🎉' as status;
-                        </div>
                     </div>
+                </div>
 
-                    <div class="flex space-x-4">
-                        <button type="button" onclick="testSupabaseConnection()" 
-                                class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-all font-medium">
-                            <i class="fas fa-plug mr-2"></i>Tester la connexion
-                        </button>
-                        <button type="submit" 
-                                class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-all font-medium">
-                            <i class="fas fa-save mr-2"></i>Sauvegarder et continuer
-                        </button>
+                <button type="submit" class="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                    <span id="auth-button-text">Se connecter</span>
+                </button>
+            </form>
+
+            <div class="mt-4 text-center space-y-2">
+                <button onclick="showForgotPassword()" class="text-sm text-blue-600 hover:underline block">
+                    Mot de passe oublié ?
+                </button>
+                <div class="text-xs text-gray-500">
+                    <span id="login-attempts"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2FA Verification Modal -->
+    <div id="twofa-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="text-center mb-6">
+                <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Authentification à deux facteurs</h3>
+                <p class="text-gray-600 text-sm">Entrez le code de vérification à 6 chiffres</p>
+            </div>
+
+            <form id="twofa-form" onsubmit="verify2FA(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Code de vérification</label>
+                        <input type="text" id="twofa-code" maxlength="6" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg font-mono" placeholder="000000">
                     </div>
-
+                    
                     <div class="text-center">
-                        <button type="button" onclick="useOfflineMode()" 
-                                class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
-                            Continuer en mode hors ligne (données temporaires)
+                        <p class="text-sm text-gray-600 mb-2">Code envoyé par <span id="twofa-method">email</span></p>
+                        <p class="text-xs text-blue-600 mb-2">Code de démo : <span id="demo-code" class="font-mono bg-blue-50 px-2 py-1 rounded">------</span></p>
+                        <button type="button" onclick="resend2FACode()" class="text-sm text-blue-600 hover:underline">
+                            Renvoyer le code
                         </button>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
+                </div>
 
-    <!-- User Login Screen -->
-    <div id="userLoginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
-            <div class="text-center mb-8">
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-archive text-white text-2xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-900">JustArchiv</h1>
-                <p class="text-gray-600 mt-2">Gestionnaire de documents intelligent</p>
-            </div>
-            
-            <form id="userLoginForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="userEmail" required 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                           placeholder="votre@email.com">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                    <div class="relative">
-                        <input type="password" id="userPassword" required 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-12"
-                               placeholder="Votre mot de passe">
-                        <button type="button" onclick="togglePasswordVisibility('userPassword')" 
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center">
-                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-600">Se souvenir de moi</span>
-                    </label>
-                    <a href="#" onclick="showPasswordReset()" class="text-sm text-blue-600 hover:text-blue-800">Mot de passe oublié ?</a>
-                </div>
-                
-                <button type="submit" id="loginButton"
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
-                </button>
-                
-                <div class="text-center">
-                    <p class="text-sm text-gray-600">
-                        Pas encore de compte ? 
-                        <a href="#" onclick="showRegister()" class="text-blue-600 hover:text-blue-800 font-medium">S'inscrire</a>
-                    </p>
-                </div>
-                
-                <!-- Dev Access -->
-                <div class="pt-4 border-t border-gray-200">
-                    <button type="button" onclick="showDevAccess()" 
-                            class="w-full text-xs text-gray-500 hover:text-gray-700 transition-colors">
-                        Accès développeur
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="cancel2FA()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Vérifier
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- User Registration Screen -->
-    <div id="userRegisterScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
-            <div class="text-center mb-8">
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-user-plus text-white text-2xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-900">Créer un compte</h1>
-                <p class="text-gray-600 mt-2">Rejoignez JustArchiv</p>
-            </div>
-            
-            <form id="userRegisterForm" class="space-y-6">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                        <input type="text" id="firstName" required 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                               placeholder="John">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                        <input type="text" id="lastName" required 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                               placeholder="Doe">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                    <input type="email" id="registerEmail" required 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                           placeholder="votre@email.com">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mot de passe</label>
-                    <input type="password" id="registerPassword" required 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                           placeholder="Minimum 8 caractères">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Confirmer le mot de passe</label>
-                    <input type="password" id="confirmPassword" required 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                           placeholder="Répétez votre mot de passe">
-                </div>
-                
-                <div class="flex items-center">
-                    <input type="checkbox" id="acceptTerms" required class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <label for="acceptTerms" class="ml-2 text-sm text-gray-600">
-                        J'accepte les <a href="#" class="text-blue-600 hover:text-blue-800">conditions d'utilisation</a>
-                    </label>
-                </div>
-                
-                <button type="submit" id="registerButton"
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium">
-                    <i class="fas fa-user-plus mr-2"></i>Créer mon compte
-                </button>
-                
-                <div class="text-center">
-                    <p class="text-sm text-gray-600">
-                        Déjà un compte ? 
-                        <a href="#" onclick="showLogin()" class="text-blue-600 hover:text-blue-800 font-medium">Se connecter</a>
-                    </p>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Dev Login Screen -->
-    <div id="devLoginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 hidden">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md fade-in">
-            <div class="text-center mb-8">
-                <div class="bg-gradient-to-r from-purple-600 to-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-code text-white text-2xl"></i>
-                </div>
-                <h1 class="text-3xl font-bold text-gray-900">Dashboard Dev</h1>
-                <p class="text-gray-600 mt-2">Accès développeur sécurisé</p>
-            </div>
-            
-            <form id="devLoginForm" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Clé d'accès développeur</label>
-                    <div class="relative">
-                        <input type="password" id="devKey" required 
-                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all pr-12"
-                               placeholder="Entrez votre clé d'accès">
-                        <button type="button" onclick="togglePasswordVisibility('devKey')" 
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Code 2FA (optionnel)</label>
-                    <input type="text" id="dev2FA" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                           placeholder="123456">
-                </div>
-                
-                <button type="submit" 
-                        class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-medium">
-                    <i class="fas fa-shield-alt mr-2"></i>Accéder au Dashboard
-                </button>
-                
-                <div class="text-center">
-                    <button type="button" onclick="backToUserLogin()" class="text-sm text-gray-500 hover:text-gray-700">
-                        ← Retour à la connexion utilisateur
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- User Dashboard -->
-    <div id="userDashboard" class="hidden">
-        <!-- User Sidebar -->
-        <div id="userSidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform -translate-x-full lg:translate-x-0 sidebar-transition">
-            <div class="flex items-center justify-between p-6 border-b border-gray-200">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 w-10 h-10 rounded-lg flex items-center justify-center">
-                        <i class="fas fa-archive text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-gray-900">JustArchiv</h1>
-                        <p class="text-xs text-gray-500">Documents</p>
-                    </div>
-                </div>
-                <button onclick="toggleUserSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Récupération de mot de passe</h3>
+                <button onclick="closeForgotPassword()" class="text-gray-400 hover:text-gray-600">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            
-            <nav class="p-6 space-y-2">
-                <a href="#" onclick="showUserSection('dashboard')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg bg-blue-50 text-blue-700">
-                    <i class="fas fa-tachometer-alt"></i>
-                    <span>Tableau de bord</span>
-                </a>
-                <a href="#" onclick="showUserSection('documents')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Mes documents</span>
-                </a>
-                <a href="#" onclick="showUserSection('upload')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <span>Ajouter</span>
-                </a>
-                <a href="#" onclick="showUserSection('categories')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-tags"></i>
-                    <span>Catégories</span>
-                </a>
-                <a href="#" onclick="showUserSection('search')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-search"></i>
-                    <span>Recherche</span>
-                </a>
-                <a href="#" onclick="showUserSection('profile')" class="user-nav-item flex items-center space-x-3 p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors">
-                    <i class="fas fa-user-cog"></i>
-                    <span>Profil</span>
-                </a>
-            </nav>
-            
-            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-200">
-                <div class="flex items-center space-x-3 mb-4">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
-                        <i class="fas fa-user text-white"></i>
-                    </div>
+
+            <form id="forgot-password-form" onsubmit="handleForgotPassword(event)">
+                <div class="space-y-4">
                     <div>
-                        <p class="font-medium text-gray-900" id="currentUserName">Utilisateur</p>
-                        <p class="text-sm text-gray-500" id="currentUserEmail">email@example.com</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Adresse email</label>
+                        <input type="email" id="forgot-email" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        Un lien de réinitialisation sécurisé sera envoyé à cette adresse email.
+                    </p>
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeForgotPassword()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Document Modal -->
+    <div id="upload-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Téléverser un Document</h3>
+                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="upload-form" onsubmit="handleUpload(event)">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
+                        <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors cursor-pointer">
+                            <input type="file" id="file-input" class="hidden" multiple onchange="handleFileSelect(event)">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">Glissez vos fichiers ici ou <span class="text-blue-600 underline">cliquez pour parcourir</span></p>
+                            <p class="text-xs text-gray-500 mt-1">Formats supportés: PDF, DOC, DOCX, JPG, PNG, ZIP (Max: 50MB)</p>
+                        </div>
+                        <div id="file-list" class="mt-3 space-y-2"></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                            <select id="doc-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="general">Général</option>
+                                <option value="contracts">Contrats</option>
+                                <option value="invoices">Factures</option>
+                                <option value="reports">Rapports</option>
+                                <option value="personal">Personnel</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Niveau de sécurité</label>
+                            <select id="security-level" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="private">Privé</option>
+                                <option value="shared">Partagé</option>
+                                <option value="public">Public</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description (optionnel)</label>
+                        <textarea id="doc-description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Description du document..."></textarea>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <input type="checkbox" id="encrypt-file" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <label for="encrypt-file" class="text-sm text-gray-700">Chiffrer le fichier (AES-256)</label>
                     </div>
                 </div>
-                <button onclick="userLogout()" class="w-full flex items-center justify-center space-x-2 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Déconnexion</span>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="closeUploadModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                        Annuler
+                    </button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-upload mr-2"></i>
+                        Téléverser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Details Modal -->
+    <div id="document-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <div class="flex items-center space-x-3">
+                    <div id="doc-icon" class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-alt text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 id="doc-title" class="text-lg font-semibold">Document</h3>
+                        <p id="doc-meta" class="text-sm text-gray-600">Informations du document</p>
+                    </div>
+                </div>
+                <button onclick="closeDocumentModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex h-[calc(90vh-80px)]">
+                <!-- Sidebar -->
+                <div class="w-80 border-r bg-gray-50 p-4 overflow-y-auto">
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-medium mb-2">Informations</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Taille:</span>
+                                    <span id="doc-size">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Type:</span>
+                                    <span id="doc-type">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Créé:</span>
+                                    <span id="doc-created">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Modifié:</span>
+                                    <span id="doc-modified">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Statut:</span>
+                                    <span id="doc-status">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-medium mb-2">Actions</h4>
+                            <div class="space-y-2">
+                                <button onclick="downloadDocument()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-download mr-3 text-blue-600"></i>
+                                    Télécharger
+                                </button>
+                                <button onclick="shareDocument()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-share-alt mr-3 text-green-600"></i>
+                                    Partager
+                                </button>
+                                <button onclick="showVersions()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                                    <i class="fas fa-history mr-3 text-purple-600"></i>
+                                    Versions
+                                </button>
+                                <button onclick="deleteDocument()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                                    <i class="fas fa-trash mr-3"></i>
+                                    Supprimer
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="font-medium mb-2">Sécurité</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-lock text-green-600 mr-2"></i>
+                                    <span>Chiffré AES-256</span>
+                                </div>
+                                <div class="flex items-center text-sm">
+                                    <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                                    <span>Signature numérique</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 p-6 overflow-y-auto">
+                    <div id="document-preview" class="h-full flex items-center justify-center bg-gray-100 rounded-lg">
+                        <div class="text-center">
+                            <i class="fas fa-file-alt text-6xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600">Aperçu du document</p>
+                            <p class="text-sm text-gray-500">Cliquez sur "Télécharger" pour ouvrir le fichier</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Document Modal -->
+    <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Partager le Document</h3>
+                <button onclick="closeShareModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email du destinataire</label>
+                    <input type="email" id="share-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="email@exemple.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
+                    <select id="share-permissions" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="view">Lecture seule</option>
+                        <option value="edit">Lecture et modification</option>
+                        <option value="admin">Contrôle total</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Expiration (optionnel)</label>
+                    <input type="date" id="share-expiry" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="share-notify" checked class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                    <label for="share-notify" class="text-sm text-gray-700">Notifier par email</label>
+                </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeShareModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    Annuler
+                </button>
+                <button onclick="confirmShare()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Partager
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Manager Modal -->
+    <div id="category-manager-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-lg font-semibold">Gestionnaire de Catégories et Tags</h3>
+                <button onclick="closeCategoryManager()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex h-[calc(90vh-80px)]">
+                <!-- Sidebar - Catégories -->
+                <div class="w-80 border-r bg-gray-50 p-4 overflow-y-auto">
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="font-medium">Catégories</h4>
+                            <button onclick="showAddCategoryForm()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                <i class="fas fa-plus mr-1"></i>
+                                Ajouter
+                            </button>
+                        </div>
+                        
+                        <!-- Formulaire d'ajout de catégorie -->
+                        <div id="add-category-form" class="hidden mb-4 p-3 bg-white rounded-lg border">
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom de la catégorie</label>
+                                    <input type="text" id="new-category-name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Ex: Juridique">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                    <textarea id="new-category-desc" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Description optionnelle..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
+                                    <div class="flex space-x-2">
+                                        <button onclick="selectCategoryColor('blue')" class="w-6 h-6 bg-blue-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="blue"></button>
+                                        <button onclick="selectCategoryColor('green')" class="w-6 h-6 bg-green-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="green"></button>
+                                        <button onclick="selectCategoryColor('purple')" class="w-6 h-6 bg-purple-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="purple"></button>
+                                        <button onclick="selectCategoryColor('red')" class="w-6 h-6 bg-red-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="red"></button>
+                                        <button onclick="selectCategoryColor('yellow')" class="w-6 h-6 bg-yellow-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="yellow"></button>
+                                        <button onclick="selectCategoryColor('indigo')" class="w-6 h-6 bg-indigo-500 rounded-full border-2 border-transparent hover:border-gray-400 category-color" data-color="indigo"></button>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end space-x-2">
+                                    <button onclick="hideAddCategoryForm()" class="px-3 py-1 text-gray-600 hover:text-gray-800 text-sm">
+                                        Annuler
+                                    </button>
+                                    <button onclick="addCategory()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                        Créer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des catégories -->
+                        <div id="categories-list" class="space-y-2">
+                            <!-- Les catégories seront générées ici -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content - Tags -->
+                <div class="flex-1 p-6 overflow-y-auto">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium">Tags Disponibles</h4>
+                            <div class="flex items-center space-x-3">
+                                <div class="relative">
+                                    <input type="text" id="search-tags" placeholder="Rechercher des tags..." class="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-64">
+                                    <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-400 text-sm"></i>
+                                </div>
+                                <button onclick="showAddTagForm()" class="bg-green-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-green-700">
+                                    <i class="fas fa-plus mr-1"></i>
+                                    Nouveau Tag
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Formulaire d'ajout de tag -->
+                        <div id="add-tag-form" class="hidden mb-4 p-4 bg-gray-50 rounded-lg border">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nom du tag</label>
+                                    <input type="text" id="new-tag-name" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Ex: urgent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                                    <select id="new-tag-category" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 text-sm">
+                                        <option value="">Aucune catégorie</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-end space-x-2">
+                                    <button onclick="hideAddTagForm()" class="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm">
+                                        Annuler
+                                    </button>
+                                    <button onclick="addTag()" class="bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700">
+                                        Créer Tag
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistiques des tags -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Total Tags</p>
+                                        <p class="text-xl font-bold text-gray-900" id="total-tags">0</p>
+                                    </div>
+                                    <i class="fas fa-tags text-blue-600"></i>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg border p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Tags Utilisés</p>
+                                        <p class="text-xl font-bold text-gray-900" id="used-tags">0</p>
+                                    </div>
+                                    <i class="fas fa-check-circle text-green-600"></i>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg border p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Plus Populaire</p>
+                                        <p class="text-sm font-medium text-gray-900" id="popular-tag">-</p>
+                                    </div>
+                                    <i class="fas fa-star text-yellow-600"></i>
+                                </div>
+                            </div>
+                            <div class="bg-white rounded-lg border p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-600">Catégories</p>
+                                        <p class="text-xl font-bold text-gray-900" id="total-categories">0</p>
+                                    </div>
+                                    <i class="fas fa-folder text-purple-600"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Liste des tags -->
+                        <div class="bg-white rounded-lg border">
+                            <div class="p-4 border-b">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="font-medium">Tous les Tags</h5>
+                                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                        <span>Trier par:</span>
+                                        <select id="sort-tags" class="border border-gray-300 rounded px-2 py-1 text-sm">
+                                            <option value="name">Nom</option>
+                                            <option value="usage">Utilisation</option>
+                                            <option value="category">Catégorie</option>
+                                            <option value="date">Date de création</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="tags-list" class="p-4">
+                                <!-- Les tags seront générés ici -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Modal -->
+    <div id="user-management-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-lg font-semibold">Gestion des Utilisateurs</h3>
+                <button onclick="closeUserManagement()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                <!-- Statistiques des utilisateurs -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-lg border p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Utilisateurs</p>
+                                <p class="text-xl font-bold text-gray-900" id="total-users">0</p>
+                            </div>
+                            <i class="fas fa-users text-blue-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg border p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Actifs</p>
+                                <p class="text-xl font-bold text-green-600" id="active-users">0</p>
+                            </div>
+                            <i class="fas fa-user-check text-green-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg border p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">En Attente</p>
+                                <p class="text-xl font-bold text-yellow-600" id="pending-users">0</p>
+                            </div>
+                            <i class="fas fa-user-clock text-yellow-600"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg border p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Administrateurs</p>
+                                <p class="text-xl font-bold text-purple-600" id="admin-users">0</p>
+                            </div>
+                            <i class="fas fa-user-shield text-purple-600"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtres et actions -->
+                <div class="bg-white rounded-lg border p-4 mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                <input type="text" id="search-users" placeholder="Rechercher des utilisateurs..." class="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-64">
+                                <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-400 text-sm"></i>
+                            </div>
+                            <select id="filter-user-role" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="">Tous les rôles</option>
+                                <option value="admin">Administrateur</option>
+                                <option value="editor">Éditeur</option>
+                                <option value="user">Utilisateur</option>
+                            </select>
+                            <select id="filter-user-status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                <option value="">Tous les statuts</option>
+                                <option value="active">Actif</option>
+                                <option value="pending">En attente</option>
+                                <option value="suspended">Suspendu</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="inviteUser()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center">
+                                <i class="fas fa-user-plus mr-2"></i>
+                                Inviter Utilisateur
+                            </button>
+                            <button onclick="exportUsers()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                                <i class="fas fa-download mr-2"></i>
+                                Exporter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liste des utilisateurs -->
+                <div class="bg-white rounded-lg border overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière Connexion</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Les utilisateurs seront générés ici -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Settings Modal -->
+    <div id="system-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h3 class="text-lg font-semibold">Paramètres Système</h3>
+                <button onclick="closeSystemSettings()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="flex h-[calc(90vh-80px)]">
+                <!-- Sidebar des paramètres -->
+                <div class="w-64 border-r bg-gray-50 p-4 overflow-y-auto">
+                    <nav class="space-y-2">
+                        <button onclick="showSettingsTab('general')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors active bg-white shadow-sm">
+                            <i class="fas fa-cog mr-3"></i>
+                            Général
+                        </button>
+                        <button onclick="showSettingsTab('security')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-shield-alt mr-3"></i>
+                            Sécurité
+                        </button>
+                        <button onclick="showSettingsTab('storage')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-hdd mr-3"></i>
+                            Stockage
+                        </button>
+                        <button onclick="showSettingsTab('notifications')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-bell mr-3"></i>
+                            Notifications
+                        </button>
+                        <button onclick="showSettingsTab('backup')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-database mr-3"></i>
+                            Sauvegardes
+                        </button>
+                        <button onclick="showSettingsTab('maintenance')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-tools mr-3"></i>
+                            Maintenance
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Contenu des paramètres -->
+                <div class="flex-1 p-6 overflow-y-auto">
+                    <!-- Onglet Général -->
+                    <div id="settings-general" class="settings-content">
+                        <h4 class="text-lg font-semibold mb-4">Paramètres Généraux</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Informations du Système</h5>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-600">Version:</span>
+                                        <span class="font-medium ml-2">JArchiv v2.1.4</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">Base de données:</span>
+                                        <span class="font-medium ml-2">PostgreSQL 14.2</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">Serveur:</span>
+                                        <span class="font-medium ml-2">Ubuntu 22.04 LTS</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-600">Uptime:</span>
+                                        <span class="font-medium ml-2">15 jours, 8h 32m</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Configuration Générale</h5>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'organisation</label>
+                                        <input type="text" value="JArchiv Enterprise" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fuseau horaire</label>
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option>Europe/Paris (UTC+1)</option>
+                                            <option>Europe/London (UTC+0)</option>
+                                            <option>America/New_York (UTC-5)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Langue par défaut</label>
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option>Français</option>
+                                            <option>English</option>
+                                            <option>Español</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Sécurité -->
+                    <div id="settings-security" class="settings-content hidden">
+                        <h4 class="text-lg font-semibold mb-4">Paramètres de Sécurité</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Politiques de Mot de Passe</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Longueur minimale</span>
+                                        <input type="number" value="8" min="6" max="32" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Exiger des majuscules</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Exiger des chiffres</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Expiration (jours)</span>
+                                        <input type="number" value="90" min="30" max="365" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Authentification à Deux Facteurs</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">2FA obligatoire pour les admins</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">2FA recommandé pour tous</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Sessions</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Durée de session (minutes)</span>
+                                        <input type="number" value="30" min="15" max="480" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Sessions simultanées max</span>
+                                        <input type="number" value="3" min="1" max="10" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Stockage -->
+                    <div id="settings-storage" class="settings-content hidden">
+                        <h4 class="text-lg font-semibold mb-4">Gestion du Stockage</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Utilisation du Stockage</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Espace total</span>
+                                        <span class="font-medium">500 GB</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Espace utilisé</span>
+                                        <span class="font-medium">210 GB (42%)</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Limites de Fichiers</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Taille max par fichier (MB)</span>
+                                        <input type="number" value="50" min="1" max="1000" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Quota par utilisateur (GB)</span>
+                                        <input type="number" value="10" min="1" max="100" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Nettoyage Automatique</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Supprimer les fichiers temporaires</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Archiver les anciens fichiers (jours)</span>
+                                        <input type="number" value="365" min="30" max="3650" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Notifications -->
+                    <div id="settings-notifications" class="settings-content hidden">
+                        <h4 class="text-lg font-semibold mb-4">Paramètres de Notifications</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Notifications Email</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Nouvelles inscriptions</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Alertes de sécurité</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Rapports hebdomadaires</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Configuration SMTP</h5>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP</label>
+                                        <input type="text" value="smtp.gmail.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Port</label>
+                                            <input type="number" value="587" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Chiffrement</label>
+                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                                <option>TLS</option>
+                                                <option>SSL</option>
+                                                <option>Aucun</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Sauvegardes -->
+                    <div id="settings-backup" class="settings-content hidden">
+                        <h4 class="text-lg font-semibold mb-4">Gestion des Sauvegardes</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Sauvegardes Automatiques</h5>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Activer les sauvegardes automatiques</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fréquence</label>
+                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                            <option>Quotidienne</option>
+                                            <option>Hebdomadaire</option>
+                                            <option>Mensuelle</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Heure de sauvegarde</label>
+                                        <input type="time" value="02:00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Historique des Sauvegardes</h5>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                                        <div>
+                                            <p class="text-sm font-medium">Sauvegarde complète</p>
+                                            <p class="text-xs text-gray-600">Aujourd'hui à 02:00 - 2.4 GB</p>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Réussie</span>
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
+                                        <div>
+                                            <p class="text-sm font-medium">Sauvegarde complète</p>
+                                            <p class="text-xs text-gray-600">Hier à 02:00 - 2.3 GB</p>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Réussie</span>
+                                            <button class="text-blue-600 hover:text-blue-800 text-sm">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onclick="createBackup()" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Créer une Sauvegarde Maintenant
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Maintenance -->
+                    <div id="settings-maintenance" class="settings-content hidden">
+                        <h4 class="text-lg font-semibold mb-4">Maintenance du Système</h4>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">État du Système</h5>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Base de données</span>
+                                        <span class="flex items-center text-green-600">
+                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
+                                            Opérationnelle
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Stockage</span>
+                                        <span class="flex items-center text-green-600">
+                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
+                                            Opérationnel
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Chiffrement</span>
+                                        <span class="flex items-center text-green-600">
+                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
+                                            Actif
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Sauvegardes</span>
+                                        <span class="flex items-center text-green-600">
+                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
+                                            Fonctionnelles
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg border p-4">
+                                <h5 class="font-medium mb-3">Actions de Maintenance</h5>
+                                <div class="space-y-3">
+                                    <button onclick="optimizeDatabase()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-database text-blue-600 mr-3"></i>
+                                            <div class="text-left">
+                                                <p class="text-sm font-medium">Optimiser la Base de Données</p>
+                                                <p class="text-xs text-gray-600">Nettoie et optimise les performances</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </button>
+                                    
+                                    <button onclick="clearCache()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-broom text-green-600 mr-3"></i>
+                                            <div class="text-left">
+                                                <p class="text-sm font-medium">Vider le Cache</p>
+                                                <p class="text-xs text-gray-600">Supprime les fichiers temporaires</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </button>
+                                    
+                                    <button onclick="checkIntegrity()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-shield-alt text-purple-600 mr-3"></i>
+                                            <div class="text-left">
+                                                <p class="text-sm font-medium">Vérifier l'Intégrité</p>
+                                                <p class="text-xs text-gray-600">Contrôle la cohérence des données</p>
+                                            </div>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h5 class="font-medium text-red-800 mb-3">Zone de Danger</h5>
+                                <div class="space-y-3">
+                                    <button onclick="resetSystem()" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
+                                        Réinitialiser le Système
+                                    </button>
+                                    <p class="text-xs text-red-700">
+                                        ⚠️ Cette action supprimera toutes les données et ne peut pas être annulée.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t p-4 flex justify-end space-x-3">
+                <button onclick="closeSystemSettings()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                    Annuler
+                </button>
+                <button onclick="saveSystemSettings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Enregistrer les Modifications
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-app" class="hidden min-h-screen">
+        <!-- Security Alert Banner -->
+        <div id="security-banner" class="bg-red-50 border-b border-red-200 px-6 py-2 hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-600 mr-2 pulse-security"></i>
+                    <span class="text-sm text-red-800" id="security-message">Alerte de sécurité</span>
+                </div>
+                <button onclick="dismissSecurityAlert()" class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
 
-        <!-- User Main Content -->
-        <div class="lg:ml-64">
-            <!-- User Header -->
-            <header class="bg-white shadow-sm border-b border-gray-200 p-4">
+        <!-- Sidebar -->
+        <div id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-white shadow-lg z-40 transform transition-transform slide-in">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-shield-alt text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">JArchiv</h1>
+                        <p class="text-xs text-gray-600" id="user-info">Utilisateur connecté</p>
+                    </div>
+                </div>
+                
+                <!-- Security Status -->
+                <div class="mt-3 flex items-center text-xs">
+                    <div class="flex items-center mr-4">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                        <span class="text-gray-600">Sécurisé</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-shield-alt text-green-500 mr-1"></i>
+                        <span class="text-gray-600" id="security-level">2FA Activé</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="mt-6">
+                <div class="px-6 space-y-2">
+                    <button onclick="showSection('dashboard')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors active bg-blue-50 text-blue-600">
+                        <i class="fas fa-home mr-3"></i>
+                        Dashboard
+                    </button>
+                    <button onclick="showSection('documents')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-file-alt mr-3"></i>
+                        Documents
+                    </button>
+                    <button onclick="showSection('security')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-shield-alt mr-3"></i>
+                        Sécurité
+                    </button>
+                    <button onclick="showSection('sessions')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-desktop mr-3"></i>
+                        Sessions
+                    </button>
+                    <button onclick="showSection('profile')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-user mr-3"></i>
+                        Profil
+                    </button>
+                    <button onclick="showSection('admin')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors" id="admin-nav" style="display: none;">
+                        <i class="fas fa-cogs mr-3"></i>
+                        Administration
+                    </button>
+                </div>
+            </nav>
+
+            <div class="absolute bottom-6 left-6 right-6">
+                <button onclick="toggleDarkMode()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors mb-2">
+                    <i class="fas fa-moon mr-3" id="theme-icon"></i>
+                    Mode sombre
+                </button>
+                <button onclick="logout()" class="w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-red-50 text-red-600 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-3"></i>
+                    Déconnexion
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 min-h-screen">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
-                        <button onclick="toggleUserSidebar()" class="lg:hidden text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                        <h2 id="userPageTitle" class="text-2xl font-bold text-gray-900">Tableau de bord</h2>
-                        <div id="userConnectionStatus" class="connection-status connected">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            <span>Connecté</span>
-                        </div>
+                        <h2 id="page-title" class="text-xl font-semibold text-gray-900">Dashboard Sécurisé</h2>
                     </div>
                     
                     <div class="flex items-center space-x-4">
-                        <div class="relative">
-                            <input type="text" id="quickSearch" placeholder="Recherche rapide..." 
-                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
-                                   oninput="quickSearch(this.value)">
-                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-clock mr-1"></i>
+                            <span id="session-timer">Session: 29:45</span>
                         </div>
-                        <button onclick="toggleUserTheme()" class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-                            <i id="userThemeIcon" class="fas fa-moon"></i>
+                        <button onclick="showSecurityLogs()" class="relative p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-shield-alt"></i>
+                            <span class="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">✓</span>
                         </button>
-                        <div class="relative">
-                            <button class="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors relative">
-                                <i class="fas fa-bell"></i>
-                                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
             </header>
 
-            <!-- User Dashboard Section -->
-            <div id="userDashboardSection" class="p-6">
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Mes Documents</p>
-                                <p class="text-3xl font-bold text-gray-900" id="userDocCount">0</p>
+            <!-- Content Sections -->
+            <main class="p-6">
+                <!-- Dashboard Section -->
+                <div id="dashboard-section" class="section">
+                    <!-- Filtres de période -->
+                    <div class="bg-white rounded-lg shadow p-4 mb-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-semibold text-gray-900">Dashboard Analytics</h3>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-circle text-green-500 text-xs"></i>
+                                    <span class="text-sm text-gray-600">Données en temps réel</span>
+                                </div>
                             </div>
-                            <div class="bg-blue-100 p-3 rounded-lg">
-                                <i class="fas fa-file-alt text-blue-600 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4 flex items-center text-sm">
-                            <span class="text-green-600 font-medium" id="docCountChange">+0</span>
-                            <span class="text-gray-600 ml-2">cette semaine</span>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Catégories</p>
-                                <p class="text-3xl font-bold text-gray-900" id="userCatCount">0</p>
-                            </div>
-                            <div class="bg-purple-100 p-3 rounded-lg">
-                                <i class="fas fa-tags text-purple-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Espace Utilisé</p>
-                                <p class="text-3xl font-bold text-gray-900" id="userStorageUsed">0 MB</p>
-                            </div>
-                            <div class="bg-orange-100 p-3 rounded-lg">
-                                <i class="fas fa-hdd text-orange-600 text-xl"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <div class="bg-gray-200 rounded-full h-2">
-                                <div class="bg-orange-600 h-2 rounded-full" style="width: 0%" id="storageProgress"></div>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-1" id="storageText">0% de 1 GB</p>
-                        </div>
-                    </div>
-                    
-                    <div class="metric-card bg-white p-6 rounded-xl shadow-sm border border-gray-200 fade-in">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-600">Dernière activité</p>
-                                <p class="text-lg font-bold text-green-600" id="lastActivity">Jamais</p>
-                            </div>
-                            <div class="bg-green-100 p-3 rounded-lg">
-                                <i class="fas fa-clock text-green-600 text-xl"></i>
+                            <div class="flex items-center space-x-3">
+                                <select id="analytics-period" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm" onchange="updateAnalyticsPeriod()">
+                                    <option value="7">7 derniers jours</option>
+                                    <option value="30" selected>30 derniers jours</option>
+                                    <option value="90">3 derniers mois</option>
+                                    <option value="365">12 derniers mois</option>
+                                </select>
+                                <button onclick="exportAnalytics()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Exporter
+                                </button>
+                                <button onclick="refreshAnalytics()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Recent Documents -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-semibold text-gray-900">Documents récents</h3>
-                        <a href="#" onclick="showUserSection('documents')" class="text-blue-600 hover:text-blue-800 font-medium">
-                            Voir tous
-                        </a>
+                    <!-- KPI Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Documents Totaux</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="kpi-total-docs">127</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                        <span class="text-xs text-green-600">+12% ce mois</span>
+                                    </div>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-file-alt text-blue-600"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Espace Utilisé</p>
+                                    <p class="text-2xl font-bold text-gray-900">8.4 GB</p>
+                                    <div class="flex items-center mt-1">
+                                        <div class="w-16 bg-gray-200 rounded-full h-1.5 mr-2">
+                                            <div class="bg-blue-600 h-1.5 rounded-full" style="width: 42%"></div>
+                                        </div>
+                                        <span class="text-xs text-gray-600">42% de 20GB</span>
+                                    </div>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-hdd text-green-600"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Connexions Mensuelles</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="kpi-connections">89</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-arrow-up text-green-500 text-xs mr-1"></i>
+                                        <span class="text-xs text-green-600">+8% vs mois dernier</span>
+                                    </div>
+                                </div>
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-sign-in-alt text-purple-600"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Score Sécurité</p>
+                                    <p class="text-2xl font-bold text-green-600" id="kpi-security-score">94%</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-shield-alt text-green-500 text-xs mr-1"></i>
+                                        <span class="text-xs text-green-600">Excellent</span>
+                                    </div>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-shield-alt text-green-600"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="recentDocuments">
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-file-alt text-4xl mb-4"></i>
-                            <p>Aucun document récent</p>
-                            <button onclick="showUserSection('upload')" class="mt-2 text-blue-600 hover:text-blue-800">
-                                Ajouter votre premier document
+
+                    <!-- Graphiques principaux -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Graphique d'activité -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold">Activité des Documents</h4>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="changeChartType('activity', 'line')" class="chart-type-btn active px-2 py-1 text-xs rounded" data-chart="activity" data-type="line">
+                                        <i class="fas fa-chart-line"></i>
+                                    </button>
+                                    <button onclick="changeChartType('activity', 'bar')" class="chart-type-btn px-2 py-1 text-xs rounded" data-chart="activity" data-type="bar">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg" id="activity-chart">
+                                <canvas id="activityCanvas" width="400" height="200"></canvas>
+                            </div>
+                            <div class="mt-4 grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <p class="text-sm text-gray-600">Téléversements</p>
+                                    <p class="text-lg font-semibold text-blue-600" id="uploads-count">23</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Téléchargements</p>
+                                    <p class="text-lg font-semibold text-green-600" id="downloads-count">156</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Partages</p>
+                                    <p class="text-lg font-semibold text-purple-600" id="shares-count">34</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Répartition par catégories -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="text-lg font-semibold">Répartition par Catégories</h4>
+                                <button onclick="toggleChartView('categories')" class="text-sm text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-expand-alt"></i>
+                                </button>
+                            </div>
+                            <div class="h-64 flex items-center justify-center" id="categories-chart">
+                                <canvas id="categoriesCanvas" width="300" height="200"></canvas>
+                            </div>
+                            <div class="mt-4" id="categories-legend">
+                                <!-- Légende générée dynamiquement -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics détaillées -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Top Tags -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Tags les Plus Utilisés</h4>
+                            <div class="space-y-3" id="top-tags-list">
+                                <!-- Liste générée dynamiquement -->
+                            </div>
+                            <button onclick="showAllTags()" class="w-full mt-4 text-sm text-blue-600 hover:text-blue-800 border border-blue-200 rounded-lg py-2">
+                                Voir tous les tags
                             </button>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions rapides</h3>
-                        <div class="space-y-3">
-                            <button onclick="showUserSection('upload')" class="w-full flex items-center space-x-3 p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
-                                <i class="fas fa-cloud-upload-alt text-blue-600"></i>
-                                <span class="font-medium text-blue-900">Ajouter un document</span>
+                        <!-- Activité récente -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Activité Récente</h4>
+                            <div class="space-y-3" id="recent-activity">
+                                <!-- Activité générée dynamiquement -->
+                            </div>
+                            <button onclick="showActivityLog()" class="w-full mt-4 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg py-2">
+                                Voir l'historique complet
                             </button>
-                            <button onclick="showUserSection('categories')" class="w-full flex items-center space-x-3 p-3 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
-                                <i class="fas fa-tags text-purple-600"></i>
-                                <span class="font-medium text-purple-900">Gérer les catégories</span>
-                            </button>
-                            <button onclick="showUserSection('search')" class="w-full flex items-center space-x-3 p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
-                                <i class="fas fa-search text-green-600"></i>
-                                <span class="font-medium text-green-900">Recherche avancée</span>
-                            </button>
+                        </div>
+
+                        <!-- Statistiques de sécurité -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Sécurité & Conformité</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Documents chiffrés</span>
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium mr-2">98%</span>
+                                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 98%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">2FA activé</span>
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium mr-2">100%</span>
+                                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Sauvegardes</span>
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-medium mr-2">Daily</span>
+                                        <i class="fas fa-check-circle text-green-500"></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Dernière analyse</span>
+                                    <span class="text-sm text-gray-900">Il y a 2h</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+                                    <span class="text-sm text-green-800 font-medium">Système sécurisé</span>
+                                </div>
+                                <p class="text-xs text-green-700 mt-1">Aucune menace détectée</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité récente</h3>
-                        <div class="space-y-3" id="recentActivity">
-                            <div class="text-center py-4 text-gray-500">
-                                <i class="fas fa-clock text-2xl mb-2"></i>
-                                <p class="text-sm">Aucune activité récente</p>
+                    <!-- Tableau de bord des performances -->
+                    <div class="bg-white rounded-lg shadow p-6 mb-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="text-lg font-semibold">Performances du Système</h4>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-600">Mise à jour:</span>
+                                <span class="text-sm font-medium" id="last-update">Il y a 30s</span>
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="text-center">
+                                <div class="relative w-20 h-20 mx-auto mb-3">
+                                    <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                                        <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        <path class="text-blue-600" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="85, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-sm font-semibold">85%</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">CPU</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="relative w-20 h-20 mx-auto mb-3">
+                                    <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                                        <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        <path class="text-green-600" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="67, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-sm font-semibold">67%</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">Mémoire</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="relative w-20 h-20 mx-auto mb-3">
+                                    <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                                        <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        <path class="text-yellow-600" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="42, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-sm font-semibold">42%</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">Stockage</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="relative w-20 h-20 mx-auto mb-3">
+                                    <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                                        <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                        <path class="text-purple-600" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                    </svg>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <span class="text-sm font-semibold">92%</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600">Réseau</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertes et notifications -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Alertes Système</h4>
+                            <div class="space-y-3" id="system-alerts">
+                                <div class="flex items-start space-x-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                                    <i class="fas fa-exclamation-triangle text-yellow-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-yellow-800">Espace de stockage</p>
+                                        <p class="text-xs text-yellow-700">Vous approchez de la limite (85% utilisé)</p>
+                                        <p class="text-xs text-yellow-600 mt-1">Il y a 2 heures</p>
+                                    </div>
+                                    <button class="text-yellow-600 hover:text-yellow-800">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+                                    <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-blue-800">Mise à jour disponible</p>
+                                        <p class="text-xs text-blue-700">Version 2.1.4 avec améliorations de sécurité</p>
+                                        <p class="text-xs text-blue-600 mt-1">Il y a 1 jour</p>
+                                    </div>
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-green-50 border-l-4 border-green-400 rounded">
+                                    <i class="fas fa-check-circle text-green-600 mt-0.5"></i>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-green-800">Sauvegarde complétée</p>
+                                        <p class="text-xs text-green-700">Tous les documents ont été sauvegardés</p>
+                                        <p class="text-xs text-green-600 mt-1">Il y a 6 heures</p>
+                                    </div>
+                                    <button class="text-green-600 hover:text-green-800">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="text-lg font-semibold mb-4">Recommandations</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="bg-blue-100 p-2 rounded-full">
+                                        <i class="fas fa-lightbulb text-blue-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Optimiser l'organisation</p>
+                                        <p class="text-xs text-gray-600 mb-2">Créez des sous-catégories pour mieux organiser vos 127 documents</p>
+                                        <button class="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                            Voir les suggestions →
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="bg-green-100 p-2 rounded-full">
+                                        <i class="fas fa-shield-alt text-green-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Renforcer la sécurité</p>
+                                        <p class="text-xs text-gray-600 mb-2">Activez la vérification biométrique pour une sécurité renforcée</p>
+                                        <button class="text-xs text-green-600 hover:text-green-800 font-medium">
+                                            Configurer →
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3">
+                                    <div class="bg-purple-100 p-2 rounded-full">
+                                        <i class="fas fa-users text-purple-600 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium">Collaboration</p>
+                                        <p class="text-xs text-gray-600 mb-2">Invitez des collaborateurs pour améliorer la productivité</p>
+                                        <button class="text-xs text-purple-600 hover:text-purple-800 font-medium">
+                                            Inviter →
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Other User Sections (Documents, Upload, etc.) -->
-            <div id="userDocumentsSection" class="p-6 hidden">
-                <div class="text-center py-12">
-                    <i class="fas fa-file-alt text-6xl text-gray-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mes documents</h3>
-                    <p class="text-gray-600 mb-6">Vos documents apparaîtront ici</p>
-                    <button onclick="showUserSection('upload')" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                        <i class="fas fa-plus mr-2"></i>Ajouter un document
-                    </button>
-                </div>
-            </div>
+                <!-- Administration Section -->
+                <div id="admin-section" class="section hidden">
+                    <div class="mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Administration</h3>
+                        <p class="text-gray-600">Gestion complète du système JArchiv</p>
+                    </div>
 
-            <div id="userUploadSection" class="p-6 hidden">
-                <div class="text-center py-12">
-                    <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Ajouter des documents</h3>
-                    <p class="text-gray-600">Fonctionnalité d'upload en cours de développement</p>
-                </div>
-            </div>
-
-            <div id="userCategoriesSection" class="p-6 hidden">
-                <div class="text-center py-12">
-                    <i class="fas fa-tags text-6xl text-gray-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Catégories</h3>
-                    <p class="text-gray-600">Organisez vos documents par catégories</p>
-                </div>
-            </div>
-
-            <div id="userSearchSection" class="p-6 hidden">
-                <div class="text-center py-12">
-                    <i class="fas fa-search text-6xl text-gray-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Recherche avancée</h3>
-                    <p class="text-gray-600">Trouvez rapidement vos documents</p>
-                </div>
-            </div>
-
-            <div id="userProfileSection" class="p-6 hidden">
-                <div class="text-center py-12">
-                    <i class="fas fa-user-cog text-6xl text-gray-400 mb-4"></i>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Mon profil</h3>
-                    <p class="text-gray-600">Gérez vos informations personnelles</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dev Dashboard -->
-    <div id="devDashboard" class="hidden">
-        <div class="text-center py-12">
-            <i class="fas fa-code text-6xl text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Dashboard Développeur</h3>
-            <p class="text-gray-600">Interface d'administration en cours de développement</p>
-        </div>
-    </div>
-
-    <script>
-        // Supabase configuration
-        let supabase = null;
-        let supabaseConfig = {
-            url: '',
-            key: ''
-        };
-
-        // Application state
-        let currentUser = null;
-        let currentDevUser = null;
-        let isDarkMode = false;
-        let userSidebarOpen = false;
-        let devSidebarOpen = false;
-        let documents = [];
-        let categories = [];
-        let isOfflineMode = false;
-
-        // Initialize application
-        async function initApp() {
-    console.log('🚀 Initialisation de JustArchiv...');
-    
-    // Initialize event listeners first
-    initEventListeners();
-    
-    // Load theme preference
-    const savedTheme = localStorage.getItem('justarchiv_theme');
-    if (savedTheme === 'dark') {
-        toggleUserTheme();
-    }
-    
-    // Load saved Supabase config
-    const savedConfig = localStorage.getItem('supabase_config');
-    if (savedConfig) {
-        try {
-            supabaseConfig = JSON.parse(savedConfig);
-            console.log('📋 Configuration Supabase trouvée');
-            
-            const success = await initSupabase();
-            if (success) {
-                console.log('✅ Supabase configuré, vérification de la session...');
-                
-                // Check if user is already logged in
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    currentUser = session.user;
-                    console.log('👤 Utilisateur déjà connecté:', currentUser.email);
-                    showUserDashboard();
-                    return;
-                }
-                
-                // Configuration OK but no session, show login
-                console.log('🔐 Configuration OK, affichage de la connexion');
-                showUserLogin();
-                return;
-            }
-            
-            // Configuration failed, show setup again
-            console.log('❌ Configuration échouée, affichage du setup');
-            showSupabaseSetup();
-            
-        } catch (error) {
-            console.error('❌ Erreur lors du chargement de la config:', error);
-            showSupabaseSetup();
-        }
-    } else {
-        console.log('⚙️ Première utilisation - Configuration requise');
-        showSupabaseSetup();
-    }
-}
-      // Load saved Supabase config
-            const savedConfig = localStorage.getItem('supabase_config');
-            if (savedConfig) {
-                try {
-                    supabaseConfig = JSON.parse(savedConfig);
-                    console.log('📋 Configuration Supabase trouvée');
-                    
-                    const success = await initSupabase();
-                    if (success && supabase) {
-                        // Check if user is already logged in
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (session) {
-                            currentUser = session.user;
-                            console.log('👤 Utilisateur déjà connecté:', currentUser.email);
-                            showUserDashboard();
-                            return;
-                        }
-                    }
-                    
-                    showUserLogin();
-                } catch (error) {
-                    console.error('❌ Erreur lors du chargement de la config:', error);
-                    showSupabaseSetup();
-                }
-            } else {
-                console.log('⚙️ Première utilisation - Configuration requise');
-                showSupabaseSetup();
-            }
-            
-            // Initialize event listeners
-            initEventListeners();
-            
-            // Load theme preference
-            const savedTheme = localStorage.getItem('justarchiv_theme');
-            if (savedTheme === 'dark') {
-                toggleUserTheme();
-            }
-        }
-
-        async function initSupabase() {
-            if (!supabaseConfig.url || !supabaseConfig.key) {
-                console.error('❌ Configuration Supabase manquante');
-                return false;
-            }
-
-            try {
-                console.log('🔌 Connexion à Supabase...', { 
-                    url: supabaseConfig.url, 
-                    keyLength: supabaseConfig.key.length 
-                });
-                
-                supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-                
-                // Test de connexion simple
-                const { data, error } = await supabase.from('profiles').select('count').limit(1);
-                
-                // Ces codes d'erreur sont acceptables (table n'existe pas encore)
-                const acceptableErrors = ['PGRST116', '42P01', 'PGRST301'];
-                
-                if (error && !acceptableErrors.includes(error.code)) {
-                    console.warn('⚠️ Avertissement Supabase:', error);
-                    // On continue quand même si c'est juste un avertissement
-                }
-                
-                console.log('✅ Supabase initialisé avec succès');
-                updateConnectionStatus('connected');
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Erreur critique Supabase:', error);
-                updateConnectionStatus('disconnected');
-                return false;
-            }
-        }
-
-        function showSupabaseSetup() {
-            document.getElementById('supabaseSetupModal').classList.remove('hidden');
-        }
-
-        function hideSupabaseSetup() {
-            document.getElementById('supabaseSetupModal').classList.add('hidden');
-        }
-
-        async function testSupabaseConnection() {
-            const url = document.getElementById('setupSupabaseUrl').value.trim();
-            const key = document.getElementById('setupSupabaseKey').value.trim();
-            
-            if (!url || !key) {
-                showToast('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-
-            // Validation du format URL
-            if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
-                showToast('URL Supabase invalide. Format: https://xxx.supabase.co', 'error');
-                return;
-            }
-
-            // Validation de la clé
-            if (!key.startsWith('eyJ')) {
-                showToast('Clé Supabase invalide. Elle doit commencer par "eyJ"', 'error');
-                return;
-            }
-
-            updateConnectionStatus('connecting');
-            showToast('Test de connexion en cours...', 'info');
-
-            try {
-                const testClient = window.supabase.createClient(url, key);
-                const { data, error } = await testClient.from('profiles').select('count').limit(1);
-                
-                // Même si la table n'existe pas, la connexion doit fonctionner
-                if (error && !['PGRST116', '42P01', 'PGRST301'].includes(error.code)) {
-                    throw new Error(`Connexion échouée: ${error.message}`);
-                }
-                
-                updateConnectionStatus('connected');
-                showToast('✅ Connexion Supabase réussie !', 'success');
-            } catch (error) {
-                console.error('❌ Test de connexion échoué:', error);
-                updateConnectionStatus('disconnected');
-                showToast('❌ Erreur: ' + error.message, 'error');
-            }
-        }
-
-        function updateConnectionStatus(status) {
-            const statusElement = document.getElementById('connectionStatus');
-            const userStatusElement = document.getElementById('userConnectionStatus');
-            
-            statusElement.className = `connection-status ${status}`;
-            
-            const statusConfig = {
-                connected: { icon: 'fas fa-check-circle', text: 'Connecté' },
-                disconnected: { icon: 'fas fa-times-circle', text: 'Non connecté' },
-                connecting: { icon: 'fas fa-spinner fa-spin', text: 'Connexion...' }
-            };
-            
-            const config = statusConfig[status];
-            statusElement.innerHTML = `<i class="${config.icon} mr-2"></i><span>${config.text}</span>`;
-            
-            if (userStatusElement) {
-                userStatusElement.className = `connection-status ${status}`;
-                userStatusElement.innerHTML = `<i class="${config.icon} mr-2"></i><span>${config.text}</span>`;
-            }
-        }
-
-        function initEventListeners() {
-            // Supabase setup form
-            document.getElementById('supabaseSetupForm').addEventListener('submit', handleSupabaseSetup);
-            
-            // Login forms
-            document.getElementById('userLoginForm').addEventListener('submit', handleUserLogin);
-            document.getElementById('userRegisterForm').addEventListener('submit', handleUserRegister);
-            document.getElementById('devLoginForm').addEventListener('submit', handleDevLogin);
-        }
-
-        async function handleSupabaseSetup(e) {
-            e.preventDefault();
-            
-            const url = document.getElementById('setupSupabaseUrl').value.trim();
-            const key = document.getElementById('setupSupabaseKey').value.trim();
-            
-            // Validation des champs
-            if (!url || !key) {
-                showToast('Veuillez remplir tous les champs', 'error');
-                return;
-            }
-            
-            // Validation du format URL
-            if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
-                showToast('URL Supabase invalide. Format attendu: https://xxx.supabase.co', 'error');
-                return;
-            }
-            
-            // Validation de la clé
-            if (!key.startsWith('eyJ')) {
-                showToast('Clé Supabase invalide. Elle doit commencer par "eyJ"', 'error');
-                return;
-            }
-            
-            updateConnectionStatus('connecting');
-            
-            try {
-                console.log('🔄 Test de la configuration Supabase...');
-                
-                // Test de connexion avant sauvegarde
-                const testClient = window.supabase.createClient(url, key);
-                
-                // Test simple de connexion
-                const { data, error } = await testClient.from('profiles').select('count').limit(1);
-                
-                // Même si la table n'existe pas, la connexion doit fonctionner
-                if (error && !['PGRST116', '42P01', 'PGRST301'].includes(error.code)) {
-                    throw new Error(`Connexion échouée: ${error.message}`);
-                }
-                
-                // Sauvegarde de la configuration
-                supabaseConfig = { url, key };
-                localStorage.setItem('supabase_config', JSON.stringify(supabaseConfig));
-                console.log('💾 Configuration sauvegardée');
-                
-                // Initialisation de Supabase
-                const success = await initSupabase();
-                if (success) {
-                    updateConnectionStatus('connected');
-                    hideSupabaseSetup();
-                    showUserLogin();
-                    showToast('✅ Configuration Supabase sauvegardée avec succès !', 'success');
-                } else {
-                    throw new Error('Échec de l\'initialisation Supabase');
-                }
-                
-            } catch (error) {
-                console.error('❌ Erreur de configuration Supabase:', error);
-                updateConnectionStatus('disconnected');
-                showToast(`❌ Erreur: ${error.message}`, 'error');
-                
-                // Proposer le mode hors ligne en cas d'échec
-                setTimeout(() => {
-                    showToast('💡 Vous pouvez continuer en mode hors ligne si nécessaire', 'info');
-                }, 2000);
-            }
-        }
-
-        function useOfflineMode() {
-            isOfflineMode = true;
-            hideSupabaseSetup();
-            showUserLogin();
-            updateConnectionStatus('disconnected');
-            showToast('📴 Mode hors ligne activé - données temporaires', 'warning');
-        }
-
-        // Authentication functions
-        async function handleUserLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('userEmail').value;
-            const password = document.getElementById('userPassword').value;
-            
-            const loginButton = document.getElementById('loginButton');
-            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Connexion...';
-            loginButton.disabled = true;
-            
-            try {
-                if (supabase && !isOfflineMode) {
-                    console.log('🔐 Tentative de connexion:', email);
-                    
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email: email,
-                        password: password
-                    });
-                    
-                    if (error) throw error;
-                    
-                    currentUser = data.user;
-                    console.log('✅ Connexion réussie:', currentUser.email);
-                    showToast('✅ Connexion réussie !', 'success');
-                    showUserDashboard();
-                } else {
-                    // Offline mode simulation
-                    currentUser = {
-                        id: 'offline-user',
-                        email: email,
-                        user_metadata: { full_name: 'Utilisateur Hors Ligne' }
-                    };
-                    console.log('📴 Connexion en mode hors ligne');
-                    showToast('📴 Connexion en mode hors ligne', 'warning');
-                    showUserDashboard();
-                }
-            } catch (error) {
-                console.error('❌ Erreur de connexion:', error);
-                showToast('❌ Erreur de connexion: ' + error.message, 'error');
-            } finally {
-                loginButton.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Se connecter';
-                loginButton.disabled = false;
-            }
-        }
-
-        async function handleUserRegister(e) {
-            e.preventDefault();
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            if (password !== confirmPassword) {
-                showToast('Les mots de passe ne correspondent pas', 'error');
-                return;
-            }
-            
-            const registerButton = document.getElementById('registerButton');
-            registerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Création...';
-            registerButton.disabled = true;
-            
-            try {
-                if (supabase && !isOfflineMode) {
-                    console.log('📝 Création de compte:', email);
-                    
-                    const { data, error } = await supabase.auth.signUp({
-                        email: email,
-                        password: password,
-                        options: {
-                            data: {
-                                full_name: `${firstName} ${lastName}`,
-                                first_name: firstName,
-                                last_name: lastName
-                            }
-                        }
-                    });
-                    
-                    if (error) throw error;
-                    
-                    if (data.user && !data.user.email_confirmed_at) {
-                        showToast('📧 Vérifiez votre email pour confirmer votre compte', 'info');
-                        showLogin();
-                    } else {
-                        currentUser = data.user;
-                        console.log('✅ Compte créé:', currentUser.email);
-                        showToast('✅ Compte créé avec succès !', 'success');
-                        showUserDashboard();
-                    }
-                } else {
-                    // Offline mode simulation
-                    currentUser = {
-                        id: 'offline-user',
-                        email: email,
-                        user_metadata: { full_name: `${firstName} ${lastName}` }
-                    };
-                    console.log('📴 Compte créé en mode hors ligne');
-                    showToast('📴 Compte créé en mode hors ligne', 'warning');
-                    showUserDashboard();
-                }
-            } catch (error) {
-                console.error('❌ Erreur lors de la création:', error);
-                showToast('❌ Erreur lors de la création: ' + error.message, 'error');
-            } finally {
-                registerButton.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Créer mon compte';
-                registerButton.disabled = false;
-            }
-        }
-
-        async function handleDevLogin(e) {
-            e.preventDefault();
-            const devKey = document.getElementById('devKey').value;
-            
-            if (devKey === 'dev-master-key-2024' || devKey === 'admin') {
-                currentDevUser = {
-                    id: 'dev-admin',
-                    name: "Dev Admin",
-                    role: "super_admin"
-                };
-                
-                console.log('🔧 Accès développeur autorisé');
-                showToast('🔧 Accès développeur autorisé', 'success');
-                showDevDashboard();
-            } else {
-                showToast('❌ Clé d\'accès invalide', 'error');
-            }
-        }
-
-        async function userLogout() {
-            try {
-                if (supabase && !isOfflineMode) {
-                    await supabase.auth.signOut();
-                }
-                
-                currentUser = null;
-                console.log('👋 Déconnexion utilisateur');
-                showToast('👋 Déconnexion réussie', 'success');
-                showUserLogin();
-            } catch (error) {
-                console.error('❌ Erreur lors de la déconnexion:', error);
-                showToast('❌ Erreur lors de la déconnexion', 'error');
-            }
-        }
-
-        function devLogout() {
-            currentDevUser = null;
-            console.log('👋 Déconnexion développeur');
-            showToast('👋 Déconnexion développeur', 'success');
-            showUserLogin();
-        }
-
-        // UI Navigation functions
-        function showUserLogin() {
-            hideAllScreens();
-            document.getElementById('userLoginScreen').classList.remove('hidden');
-        }
-
-        function showRegister() {
-            hideAllScreens();
-            document.getElementById('userRegisterScreen').classList.remove('hidden');
-        }
-
-        function showLogin() {
-            hideAllScreens();
-            document.getElementById('userLoginScreen').classList.remove('hidden');
-        }
-
-        function showDevAccess() {
-            hideAllScreens();
-            document.getElementById('devLoginScreen').classList.remove('hidden');
-        }
-
-        function backToUserLogin() {
-            hideAllScreens();
-            document.getElementById('userLoginScreen').classList.remove('hidden');
-        }
-
-        function showUserDashboard() {
-            hideAllScreens();
-            document.getElementById('userDashboard').classList.remove('hidden');
-            
-            // Update user info
-            if (currentUser) {
-                const userName = currentUser.user_metadata?.full_name || currentUser.email || 'Utilisateur';
-                const userEmail = currentUser.email || 'email@example.com';
-                
-                document.getElementById('currentUserName').textContent = userName;
-                document.getElementById('currentUserEmail').textContent = userEmail;
-            }
-            
-            // Show dashboard by default
-            showUserSection('dashboard');
-            loadUserData();
-        }
-
-        function showDevDashboard() {
-            hideAllScreens();
-            document.getElementById('devDashboard').classList.remove('hidden');
-        }
-
-        function hideAllScreens() {
-            document.getElementById('userLoginScreen').classList.add('hidden');
-            document.getElementById('userRegisterScreen').classList.add('hidden');
-            document.getElementById('devLoginScreen').classList.add('hidden');
-            document.getElementById('userDashboard').classList.add('hidden');
-            document.getElementById('devDashboard').classList.add('hidden');
-        }
-
-        async function loadUserData() {
-            if (!currentUser) return;
-            
-            try {
-                if (supabase && !isOfflineMode) {
-                    console.log('📊 Chargement des données utilisateur...');
-                    
-                    // Load user documents
-                    const { data: docs, error: docsError } = await supabase
-                        .from('documents')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-                    
-                    if (!docsError) {
-                        documents = docs || [];
-                        console.log(`📄 ${documents.length} documents trouvés`);
-                    }
-                    
-                    // Load user categories
-                    const { data: cats, error: catsError } = await supabase
-                        .from('categories')
-                        .select('*')
-                        .eq('user_id', currentUser.id);
-                    
-                    if (!catsError) {
-                        categories = cats || [];
-                        console.log(`🏷️ ${categories.length} catégories trouvées`);
-                    }
-                }
-                
-                updateDashboardStats();
-            } catch (error) {
-                console.error('❌ Erreur lors du chargement des données:', error);
-            }
-        }
-
-        function updateDashboardStats() {
-            document.getElementById('userDocCount').textContent = documents.length;
-            document.getElementById('userCatCount').textContent = categories.length;
-            
-            // Calculate storage used (simplified)
-            const totalSize = documents.reduce((sum, doc) => sum + (doc.file_size || 0), 0);
-            const sizeInMB = (totalSize / (1024 * 1024)).toFixed(1);
-            document.getElementById('userStorageUsed').textContent = `${sizeInMB} MB`;
-            
-            // Update storage progress
-            const maxStorage = 1024; // 1GB in MB
-            const percentage = Math.min((sizeInMB / maxStorage) * 100, 100);
-            document.getElementById('storageProgress').style.width = `${percentage}%`;
-            document.getElementById('storageText').textContent = `${percentage.toFixed(1)}% de 1 GB`;
-            
-            // Update last activity
-            if (documents.length > 0) {
-                const lastDoc = documents.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-                const lastActivity = new Date(lastDoc.created_at);
-                const now = new Date();
-                const diffHours = Math.floor((now - lastActivity) / (1000 * 60 * 60));
-                
-                if (diffHours < 1) {
-                    document.getElementById('lastActivity').textContent = 'Maintenant';
-                } else if (diffHours < 24) {
-                    document.getElementById('lastActivity').textContent = `Il y a ${diffHours}h`;
-                } else {
-                    document.getElementById('lastActivity').textContent = 'Aujourd\'hui';
-                }
-            }
-        }
-
-        function showUserSection(sectionName) {
-            // Hide all user sections
-            const sections = ['dashboard', 'documents', 'upload', 'categories', 'search', 'profile'];
-            sections.forEach(section => {
-                const element = document.getElementById('user' + section.charAt(0).toUpperCase() + section.slice(1) + 'Section');
-                if (element) element.classList.add('hidden');
-            });
-            
-            // Show selected section
-            const targetSection = document.getElementById('user' + sectionName.charAt(0).toUpperCase() + sectionName.slice(1) + 'Section');
-            if (targetSection) targetSection.classList.remove('hidden');
-            
-            // Update page title
-            const titles = {
-                dashboard: 'Tableau de bord',
-                documents: 'Mes documents',
-                upload: 'Ajouter des documents',
-                categories: 'Catégories',
-                search: 'Recherche avancée',
-                profile: 'Mon profil'
-            };
-            document.getElementById('userPageTitle').textContent = titles[sectionName];
-            
-            // Update navigation
-            document.querySelectorAll('.user-nav-item').forEach(item => {
-                item.classList.remove('bg-blue-50', 'text-blue-700');
-                item.classList.add('text-gray-700', 'hover:bg-gray-100');
-            });
-            
-            // Highlight current nav item
-            const currentNavItem = document.querySelector(`[onclick="showUserSection('${sectionName}')"]`);
-            if (currentNavItem) {
-                currentNavItem.classList.remove('text-gray-700', 'hover:bg-gray-100');
-                currentNavItem.classList.add('bg-blue-50', 'text-blue-700');
-            }
-            
-            // Close sidebar on mobile
-            if (window.innerWidth < 1024) {
-                toggleUserSidebar();
-            }
-        }
-
-        function toggleUserSidebar() {
-            const sidebar = document.getElementById('userSidebar');
-            userSidebarOpen = !userSidebarOpen;
-            
-            if (userSidebarOpen) {
-                sidebar.classList.remove('-translate-x-full');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-            }
-        }
-
-        function toggleUserTheme() {
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark');
-            
-            const themeIcon = document.getElementById('userThemeIcon');
-            if (themeIcon) {
-                if (isDarkMode) {
-                    themeIcon.classList.remove('fa-moon');
-                    themeIcon.classList.add('fa-sun');
-                    localStorage.setItem('justarchiv_theme', 'dark');
-                } else {
-                    themeIcon.classList.remove('fa-sun');
-                    themeIcon.classList.add('fa-moon');
-                    localStorage.setItem('justarchiv_theme', 'light');
-                }
-            }
-        }
-
-        function togglePasswordVisibility(inputId) {
-            const input = document.getElementById(inputId);
-            const button = input.nextElementSibling.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.classList.remove('fa-eye');
-                button.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                button.classList.remove('fa-eye-slash');
-                button.classList.add('fa-eye');
-            }
-        }
-
-        function showPasswordReset() {
-            showToast('🔧 Fonctionnalité de récupération en cours de développement', 'info');
-        }
-
-        function quickSearch(query) {
-            if (query.length < 2) return;
-            console.log('🔍 Recherche rapide:', query);
-            // TODO: Implement real search
-        }
-
-        // Utility functions
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast bg-white border-l-4 p-4 rounded-lg shadow-lg max-w-sm fade-in`;
-            
-            const colors = {
-                success: 'border-green-500',
-                error: 'border-red-500',
-                warning: 'border-yellow-500',
-                info: 'border-blue-500'
-            };
-            
-            const icons = {
-                success: 'fas fa-check-circle text-green-500',
-                error: 'fas fa-exclamation-circle text-red-500',
-                warning: 'fas fa-exclamation-triangle text-yellow-500',
-                info: 'fas fa-info-circle text-blue-500'
-            };
-            
-            toast.classList.add(colors[type]);
-            
-            toast.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <i class="${icons[type]}"></i>
-                    <p class="text-gray-900 font-medium">${message}</p>
-                </div>
-            `;
-            
-            document.getElementById('toastContainer').appendChild(toast);
-            
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
-
-        function copyDatabaseScript() {
-            const scriptElement = document.getElementById('databaseScript');
-            const scriptText = scriptElement.textContent;
-            
-            navigator.clipboard.writeText(scriptText).then(() => {
-                showToast('📋 Script SQL copié dans le presse-papiers !', 'success');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = scriptText;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showToast('📋 Script SQL copié !', 'success');
-            });
-        }
-
-        // Initialize app when page loads
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97d954909127e3cc',t:'MTc1NzYxNjQxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+                    <!-- Onglets d'administration -->
+                    <div class="bg-white rounded-lg shadow mb-6">
+                        <div class="border-b border-gray-200">
+                            <nav class="flex space-x-8 px-6">
+                                <button onclick="showAdminTab('overview')" class="admin-tab py-4 px-1 border-b-2 font-medium text-sm active border-blue-500 text-blue-600">
+                                    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97db2d0be3d96938',t:'MTc1NzYzNTc2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
