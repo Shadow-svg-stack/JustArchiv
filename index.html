@@ -24,10 +24,6 @@
         .chart-type-btn:hover { background-color: #f3f4f6; }
         .chart-type-btn.active { background-color: #dbeafe; color: #2563eb; }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .admin-tab { transition: all 0.2s ease; }
-        .admin-tab.active { background-color: #dbeafe; color: #2563eb; border-color: #2563eb; }
-        .status-indicator { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body class="bg-gray-50 transition-colors duration-300">
@@ -636,564 +632,6 @@
         </div>
     </div>
 
-    <!-- User Management Modal -->
-    <div id="user-management-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-        <div class="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden">
-            <div class="flex items-center justify-between p-6 border-b">
-                <h3 class="text-lg font-semibold">Gestion des Utilisateurs</h3>
-                <button onclick="closeUserManagement()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-                <!-- Statistiques des utilisateurs -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white rounded-lg border p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Total Utilisateurs</p>
-                                <p class="text-xl font-bold text-gray-900" id="total-users">0</p>
-                            </div>
-                            <i class="fas fa-users text-blue-600"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg border p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Actifs</p>
-                                <p class="text-xl font-bold text-green-600" id="active-users">0</p>
-                            </div>
-                            <i class="fas fa-user-check text-green-600"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg border p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">En Attente</p>
-                                <p class="text-xl font-bold text-yellow-600" id="pending-users">0</p>
-                            </div>
-                            <i class="fas fa-user-clock text-yellow-600"></i>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg border p-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Administrateurs</p>
-                                <p class="text-xl font-bold text-purple-600" id="admin-users">0</p>
-                            </div>
-                            <i class="fas fa-user-shield text-purple-600"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Filtres et actions -->
-                <div class="bg-white rounded-lg border p-4 mb-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-                        <div class="flex items-center space-x-3">
-                            <div class="relative">
-                                <input type="text" id="search-users" placeholder="Rechercher des utilisateurs..." class="pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm w-64">
-                                <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-400 text-sm"></i>
-                            </div>
-                            <select id="filter-user-role" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                                <option value="">Tous les rôles</option>
-                                <option value="admin">Administrateur</option>
-                                <option value="editor">Éditeur</option>
-                                <option value="user">Utilisateur</option>
-                            </select>
-                            <select id="filter-user-status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
-                                <option value="">Tous les statuts</option>
-                                <option value="active">Actif</option>
-                                <option value="pending">En attente</option>
-                                <option value="suspended">Suspendu</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="inviteUser()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center">
-                                <i class="fas fa-user-plus mr-2"></i>
-                                Inviter Utilisateur
-                            </button>
-                            <button onclick="exportUsers()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm">
-                                <i class="fas fa-download mr-2"></i>
-                                Exporter
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Liste des utilisateurs -->
-                <div class="bg-white rounded-lg border overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Utilisateur</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dernière Connexion</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documents</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
-                                <!-- Les utilisateurs seront générés ici -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- System Settings Modal -->
-    <div id="system-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center">
-        <div class="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div class="flex items-center justify-between p-6 border-b">
-                <h3 class="text-lg font-semibold">Paramètres Système</h3>
-                <button onclick="closeSystemSettings()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="flex h-[calc(90vh-80px)]">
-                <!-- Sidebar des paramètres -->
-                <div class="w-64 border-r bg-gray-50 p-4 overflow-y-auto">
-                    <nav class="space-y-2">
-                        <button onclick="showSettingsTab('general')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors active bg-white shadow-sm">
-                            <i class="fas fa-cog mr-3"></i>
-                            Général
-                        </button>
-                        <button onclick="showSettingsTab('security')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-shield-alt mr-3"></i>
-                            Sécurité
-                        </button>
-                        <button onclick="showSettingsTab('storage')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-hdd mr-3"></i>
-                            Stockage
-                        </button>
-                        <button onclick="showSettingsTab('notifications')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-bell mr-3"></i>
-                            Notifications
-                        </button>
-                        <button onclick="showSettingsTab('backup')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-database mr-3"></i>
-                            Sauvegardes
-                        </button>
-                        <button onclick="showSettingsTab('maintenance')" class="settings-tab w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-tools mr-3"></i>
-                            Maintenance
-                        </button>
-                    </nav>
-                </div>
-
-                <!-- Contenu des paramètres -->
-                <div class="flex-1 p-6 overflow-y-auto">
-                    <!-- Onglet Général -->
-                    <div id="settings-general" class="settings-content">
-                        <h4 class="text-lg font-semibold mb-4">Paramètres Généraux</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Informations du Système</h5>
-                                <div class="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span class="text-gray-600">Version:</span>
-                                        <span class="font-medium ml-2">JArchiv v2.1.4</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-600">Base de données:</span>
-                                        <span class="font-medium ml-2">PostgreSQL 14.2</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-600">Serveur:</span>
-                                        <span class="font-medium ml-2">Ubuntu 22.04 LTS</span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-600">Uptime:</span>
-                                        <span class="font-medium ml-2">15 jours, 8h 32m</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Configuration Générale</h5>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom de l'organisation</label>
-                                        <input type="text" value="JArchiv Enterprise" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fuseau horaire</label>
-                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                            <option>Europe/Paris (UTC+1)</option>
-                                            <option>Europe/London (UTC+0)</option>
-                                            <option>America/New_York (UTC-5)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Langue par défaut</label>
-                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                            <option>Français</option>
-                                            <option>English</option>
-                                            <option>Español</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Sécurité -->
-                    <div id="settings-security" class="settings-content hidden">
-                        <h4 class="text-lg font-semibold mb-4">Paramètres de Sécurité</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Politiques de Mot de Passe</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Longueur minimale</span>
-                                        <input type="number" value="8" min="6" max="32" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Exiger des majuscules</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Exiger des chiffres</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Expiration (jours)</span>
-                                        <input type="number" value="90" min="30" max="365" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Authentification à Deux Facteurs</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">2FA obligatoire pour les admins</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">2FA recommandé pour tous</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Sessions</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Durée de session (minutes)</span>
-                                        <input type="number" value="30" min="15" max="480" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Sessions simultanées max</span>
-                                        <input type="number" value="3" min="1" max="10" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Stockage -->
-                    <div id="settings-storage" class="settings-content hidden">
-                        <h4 class="text-lg font-semibold mb-4">Gestion du Stockage</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Utilisation du Stockage</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Espace total</span>
-                                        <span class="font-medium">500 GB</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Espace utilisé</span>
-                                        <span class="font-medium">210 GB (42%)</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div class="bg-blue-600 h-2 rounded-full" style="width: 42%"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Limites de Fichiers</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Taille max par fichier (MB)</span>
-                                        <input type="number" value="50" min="1" max="1000" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Quota par utilisateur (GB)</span>
-                                        <input type="number" value="10" min="1" max="100" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Nettoyage Automatique</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Supprimer les fichiers temporaires</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Archiver les anciens fichiers (jours)</span>
-                                        <input type="number" value="365" min="30" max="3650" class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Notifications -->
-                    <div id="settings-notifications" class="settings-content hidden">
-                        <h4 class="text-lg font-semibold mb-4">Paramètres de Notifications</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Notifications Email</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Nouvelles inscriptions</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Alertes de sécurité</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Rapports hebdomadaires</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer">
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Configuration SMTP</h5>
-                                <div class="space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Serveur SMTP</label>
-                                        <input type="text" value="smtp.gmail.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                                            <input type="number" value="587" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                        </div>
-                                        <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Chiffrement</label>
-                                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                                <option>TLS</option>
-                                                <option>SSL</option>
-                                                <option>Aucun</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Sauvegardes -->
-                    <div id="settings-backup" class="settings-content hidden">
-                        <h4 class="text-lg font-semibold mb-4">Gestion des Sauvegardes</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Sauvegardes Automatiques</h5>
-                                <div class="space-y-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Activer les sauvegardes automatiques</span>
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" class="sr-only peer" checked>
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Fréquence</label>
-                                        <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                            <option>Quotidienne</option>
-                                            <option>Hebdomadaire</option>
-                                            <option>Mensuelle</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Heure de sauvegarde</label>
-                                        <input type="time" value="02:00" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Historique des Sauvegardes</h5>
-                                <div class="space-y-3">
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <div>
-                                            <p class="text-sm font-medium">Sauvegarde complète</p>
-                                            <p class="text-xs text-gray-600">Aujourd'hui à 02:00 - 2.4 GB</p>
-                                        </div>
-                                        <div class="flex items-center space-x-2">
-                                            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Réussie</span>
-                                            <button class="text-blue-600 hover:text-blue-800 text-sm">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
-                                        <div>
-                                            <p class="text-sm font-medium">Sauvegarde complète</p>
-                                            <p class="text-xs text-gray-600">Hier à 02:00 - 2.3 GB</p>
-                                        </div>
-                                        <div class="flex items-center space-x-2">
-                                            <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Réussie</span>
-                                            <button class="text-blue-600 hover:text-blue-800 text-sm">
-                                                <i class="fas fa-download"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button onclick="createBackup()" class="w-full mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                                    Créer une Sauvegarde Maintenant
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Onglet Maintenance -->
-                    <div id="settings-maintenance" class="settings-content hidden">
-                        <h4 class="text-lg font-semibold mb-4">Maintenance du Système</h4>
-                        
-                        <div class="space-y-6">
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">État du Système</h5>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Base de données</span>
-                                        <span class="flex items-center text-green-600">
-                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
-                                            Opérationnelle
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Stockage</span>
-                                        <span class="flex items-center text-green-600">
-                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
-                                            Opérationnel
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Chiffrement</span>
-                                        <span class="flex items-center text-green-600">
-                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
-                                            Actif
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm">Sauvegardes</span>
-                                        <span class="flex items-center text-green-600">
-                                            <i class="fas fa-circle text-xs mr-1 status-indicator"></i>
-                                            Fonctionnelles
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="bg-white rounded-lg border p-4">
-                                <h5 class="font-medium mb-3">Actions de Maintenance</h5>
-                                <div class="space-y-3">
-                                    <button onclick="optimizeDatabase()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-database text-blue-600 mr-3"></i>
-                                            <div class="text-left">
-                                                <p class="text-sm font-medium">Optimiser la Base de Données</p>
-                                                <p class="text-xs text-gray-600">Nettoie et optimise les performances</p>
-                                            </div>
-                                        </div>
-                                        <i class="fas fa-chevron-right text-gray-400"></i>
-                                    </button>
-                                    
-                                    <button onclick="clearCache()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-broom text-green-600 mr-3"></i>
-                                            <div class="text-left">
-                                                <p class="text-sm font-medium">Vider le Cache</p>
-                                                <p class="text-xs text-gray-600">Supprime les fichiers temporaires</p>
-                                            </div>
-                                        </div>
-                                        <i class="fas fa-chevron-right text-gray-400"></i>
-                                    </button>
-                                    
-                                    <button onclick="checkIntegrity()" class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-shield-alt text-purple-600 mr-3"></i>
-                                            <div class="text-left">
-                                                <p class="text-sm font-medium">Vérifier l'Intégrité</p>
-                                                <p class="text-xs text-gray-600">Contrôle la cohérence des données</p>
-                                            </div>
-                                        </div>
-                                        <i class="fas fa-chevron-right text-gray-400"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                                <h5 class="font-medium text-red-800 mb-3">Zone de Danger</h5>
-                                <div class="space-y-3">
-                                    <button onclick="resetSystem()" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">
-                                        Réinitialiser le Système
-                                    </button>
-                                    <p class="text-xs text-red-700">
-                                        ⚠️ Cette action supprimera toutes les données et ne peut pas être annulée.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="border-t p-4 flex justify-end space-x-3">
-                <button onclick="closeSystemSettings()" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
-                    Annuler
-                </button>
-                <button onclick="saveSystemSettings()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Enregistrer les Modifications
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Main Application -->
     <div id="main-app" class="hidden min-h-screen">
         <!-- Security Alert Banner -->
@@ -1256,10 +694,6 @@
                     <button onclick="showSection('profile')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors">
                         <i class="fas fa-user mr-3"></i>
                         Profil
-                    </button>
-                    <button onclick="showSection('admin')" class="nav-item w-full flex items-center px-3 py-2 text-left rounded-lg hover:bg-gray-100 transition-colors" id="admin-nav" style="display: none;">
-                        <i class="fas fa-cogs mr-3"></i>
-                        Administration
                     </button>
                 </div>
             </nav>
@@ -1673,16 +1107,2421 @@
                     </div>
                 </div>
 
-                <!-- Administration Section -->
-                <div id="admin-section" class="section hidden">
-                    <div class="mb-6">
-                        <h3 class="text-2xl font-bold text-gray-900 mb-2">Administration</h3>
-                        <p class="text-gray-600">Gestion complète du système JArchiv</p>
+                <!-- Security Section -->
+                <div id="security-section" class="section hidden">
+                    <div class="max-w-4xl">
+                        <h3 class="text-lg font-semibold mb-6">Centre de Sécurité</h3>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h4 class="font-medium mb-4 flex items-center">
+                                    <i class="fas fa-shield-alt text-green-600 mr-2"></i>
+                                    Authentification à Deux Facteurs
+                                </h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">2FA par Email</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="2fa-email" class="sr-only peer" checked onchange="toggle2FA('email')">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">2FA par SMS</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="2fa-sms" class="sr-only peer" onchange="toggle2FA('sms')">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">App Authenticator</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" id="2fa-app" class="sr-only peer" onchange="toggle2FA('app')">
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-6">
+                                <h4 class="font-medium mb-4 flex items-center">
+                                    <i class="fas fa-bell text-blue-600 mr-2"></i>
+                                    Notifications de Sécurité
+                                </h4>
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Connexions suspectes</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Nouvelles sessions</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm">Changements de mot de passe</span>
+                                        <label class="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" class="sr-only peer" checked>
+                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h4 class="font-medium mb-4">Journal de Sécurité</h4>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left">Date/Heure</th>
+                                            <th class="px-4 py-2 text-left">Événement</th>
+                                            <th class="px-4 py-2 text-left">IP</th>
+                                            <th class="px-4 py-2 text-left">Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="security-logs" class="divide-y divide-gray-200">
+                                        <!-- Les logs seront ajoutés ici -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sessions Section -->
+                <div id="sessions-section" class="section hidden">
+                    <div class="max-w-4xl">
+                        <h3 class="text-lg font-semibold mb-6">Gestion des Sessions</h3>
+                        
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-medium">Sessions Actives</h4>
+                                <button onclick="terminateAllSessions()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                    Terminer Toutes les Sessions
+                                </button>
+                            </div>
+                            
+                            <div id="active-sessions" class="space-y-4">
+                                <!-- Sessions actives -->
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="bg-green-100 p-2 rounded-full">
+                                                <i class="fas fa-desktop text-green-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Session Actuelle</p>
+                                                <p class="text-sm text-gray-600">Chrome sur Windows • IP: 192.168.1.100</p>
+                                                <p class="text-xs text-gray-500">Connecté depuis 25 minutes</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Actuelle</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border rounded-lg p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="bg-blue-100 p-2 rounded-full">
+                                                <i class="fas fa-mobile-alt text-blue-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium">Mobile Safari</p>
+                                                <p class="text-sm text-gray-600">iPhone • IP: 192.168.1.105</p>
+                                                <p class="text-xs text-gray-500">Dernière activité: Il y a 2 heures</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Inactive</span>
+                                            <button onclick="terminateSession('mobile')" class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Section -->
+                <div id="documents-section" class="section hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold">Documents Sécurisés</h3>
+                        <div class="flex items-center space-x-3">
+                            <div class="flex items-center bg-green-50 px-3 py-1 rounded-full">
+                                <i class="fas fa-lock text-green-600 mr-1 text-sm"></i>
+                                <span class="text-sm text-green-800">Chiffrement AES-256</span>
+                            </div>
+                            <button onclick="showCategoryManager()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+                                <i class="fas fa-tags mr-2"></i>
+                                Catégories & Tags
+                            </button>
+                            <button onclick="showUploadModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                                <i class="fas fa-upload mr-2"></i>
+                                Téléverser
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Onglets d'administration -->
-                    <div class="bg-white rounded-lg shadow mb-6">
-                        <div class="border-b border-gray-200">
-                            <nav class="flex space-x-8 px-6">
-                                <button onclick="showAdminTab('overview')" class="admin-tab py-4 px-1 border-b-2 font-medium text-sm active border-blue-500 text-blue-600">
-                                    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97db2d0be3d96938',t:'MTc1NzYzNTc2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+                    <!-- Statistiques des documents -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-lg shadow p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Total Documents</p>
+                                    <p class="text-xl font-bold text-gray-900" id="total-docs">12</p>
+                                </div>
+                                <i class="fas fa-file-alt text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Espace Utilisé</p>
+                                    <p class="text-xl font-bold text-gray-900">2.4 GB</p>
+                                </div>
+                                <i class="fas fa-hdd text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Partagés</p>
+                                    <p class="text-xl font-bold text-gray-900">5</p>
+                                </div>
+                                <i class="fas fa-share-alt text-purple-600"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Versions</p>
+                                    <p class="text-xl font-bold text-gray-900">28</p>
+                                </div>
+                                <i class="fas fa-history text-orange-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtres et recherche -->
+                    <div class="bg-white rounded-lg shadow p-4 mb-6">
+                        <div class="flex flex-col space-y-4">
+                            <!-- Première ligne : Recherche et filtres principaux -->
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
+                                <div class="flex items-center space-x-3">
+                                    <div class="relative">
+                                        <input type="text" id="search-docs" placeholder="Rechercher des documents..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
+                                        <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                                    </div>
+                                    <select id="filter-type" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Tous les types</option>
+                                        <option value="pdf">PDF</option>
+                                        <option value="doc">Documents</option>
+                                        <option value="img">Images</option>
+                                        <option value="archive">Archives</option>
+                                    </select>
+                                    <select id="filter-status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Tous les statuts</option>
+                                        <option value="private">Privé</option>
+                                        <option value="shared">Partagé</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="toggleView('grid')" id="grid-view" class="p-2 rounded hover:bg-gray-100 view-toggle active">
+                                        <i class="fas fa-th-large"></i>
+                                    </button>
+                                    <button onclick="toggleView('list')" id="list-view" class="p-2 rounded hover:bg-gray-100 view-toggle">
+                                        <i class="fas fa-list"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Deuxième ligne : Filtres par catégories et tags -->
+                            <div class="flex flex-col md:flex-row md:items-center space-y-3 md:space-y-0 md:space-x-4">
+                                <div class="flex items-center space-x-3">
+                                    <label class="text-sm font-medium text-gray-700">Catégorie:</label>
+                                    <select id="filter-category" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                        <option value="">Toutes les catégories</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="flex items-center space-x-3 flex-1">
+                                    <label class="text-sm font-medium text-gray-700">Tags:</label>
+                                    <div class="relative flex-1">
+                                        <input type="text" id="tag-search" placeholder="Rechercher ou ajouter des tags..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                        <div id="tag-suggestions" class="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-10 hidden max-h-40 overflow-y-auto"></div>
+                                    </div>
+                                </div>
+                                
+                                <button onclick="clearAllFilters()" class="text-sm text-gray-600 hover:text-gray-800 underline">
+                                    Effacer les filtres
+                                </button>
+                            </div>
+
+                            <!-- Tags sélectionnés -->
+                            <div id="selected-tags" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Liste des documents -->
+                    <div class="bg-white rounded-lg shadow">
+                        <!-- Vue grille -->
+                        <div id="documents-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            <!-- Les documents seront générés ici -->
+                        </div>
+
+                        <!-- Vue liste -->
+                        <div id="documents-list" class="hidden">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Taille</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modifié</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="documents-table-body" class="bg-white divide-y divide-gray-200">
+                                        <!-- Les documents seront générés ici -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Section -->
+                <div id="profile-section" class="section hidden">
+                    <div class="max-w-2xl">
+                        <h3 class="text-lg font-semibold mb-6">Paramètres du Profil</h3>
+                        
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
+                            <h4 class="font-medium mb-4">Informations Personnelles</h4>
+                            <form id="profile-form" onsubmit="updateProfile(event)">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                                        <input type="text" id="profile-name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                        <input type="email" id="profile-email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Mettre à jour
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
+                            <h4 class="font-medium mb-4">Changer le Mot de Passe</h4>
+                            <form id="password-form" onsubmit="changePassword(event)">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
+                                        <input type="password" id="current-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                                        <input type="password" id="new-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
+                                        <input type="password" id="confirm-new-password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                    Changer le Mot de Passe
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // État global de l'application avec sécurité
+        let currentUser = null;
+        let currentSection = 'dashboard';
+        let isDarkMode = false;
+        let loginAttempts = 0;
+        let maxLoginAttempts = 5;
+        let lockoutTime = 15 * 60 * 1000; // 15 minutes
+        let captchaAnswer = 0;
+        let twoFAEnabled = true; // Activé par défaut pour la démo
+        let pendingUser = null;
+        let sessionTimer = 30 * 60; // 30 minutes
+        let sessionInterval = null;
+
+        // Initialisation de l'application
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuthState();
+            setupEventListeners();
+            loadSecurityLogs();
+            generateCaptcha();
+            initializeDocuments();
+            
+            // Initialiser le dashboard si l'utilisateur est connecté
+            if (currentUser) {
+                setTimeout(() => {
+                    initializeDashboard();
+                }, 500);
+            }
+        });
+
+        // Vérification de l'état d'authentification
+        async function checkAuthState() {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    currentUser = session.user;
+                    showMainApp();
+                    updateUserInfo();
+                    startSessionTimer();
+                } else {
+                    showLoginScreen();
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification de l\'authentification:', error);
+                showToast('Erreur de connexion', 'error');
+            }
+        }
+
+        function setupEventListeners() {
+            updateLoginAttempts();
+        }
+
+        // Gestion de l'authentification avec sécurité renforcée
+        function switchAuthTab(tab) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            tabs.forEach(t => t.classList.remove('active', 'bg-white', 'shadow-sm'));
+            
+            const activeTab = document.querySelector(`[onclick="switchAuthTab('${tab}')"]`);
+            activeTab.classList.add('active', 'bg-white', 'shadow-sm');
+
+            const fields = ['name-field', 'confirm-password-field', 'role-field', 'captcha-field', 'password-strength', 'password-requirements'];
+            
+            if (tab === 'register') {
+                fields.forEach(field => document.getElementById(field).classList.remove('hidden'));
+                document.getElementById('auth-button-text').textContent = 'S\'inscrire';
+                generateCaptcha();
+            } else {
+                fields.forEach(field => document.getElementById(field).classList.add('hidden'));
+                document.getElementById('auth-button-text').textContent = 'Se connecter';
+            }
+            
+            updateLoginAttempts();
+        }
+
+        // Vérification de la force du mot de passe
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const strengthBar = document.getElementById('strength-bar');
+            const strengthText = document.getElementById('strength-text');
+            
+            let score = 0;
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+
+            Object.keys(requirements).forEach(req => {
+                const element = document.getElementById(`req-${req}`);
+                if (element) {
+                    const icon = element.querySelector('i');
+                    if (requirements[req]) {
+                        icon.className = 'fas fa-check text-green-500 mr-1';
+                        score++;
+                    } else {
+                        icon.className = 'fas fa-times text-red-500 mr-1';
+                    }
+                }
+            });
+
+            if (password.length >= 12) score++;
+            if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
+
+            const percentage = Math.min((score / 6) * 100, 100);
+            strengthBar.style.width = percentage + '%';
+
+            if (score <= 2) {
+                strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-red-500';
+                strengthText.textContent = 'Faible';
+                strengthText.className = 'font-medium text-red-600';
+            } else if (score <= 4) {
+                strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-yellow-500';
+                strengthText.textContent = 'Moyen';
+                strengthText.className = 'font-medium text-yellow-600';
+            } else {
+                strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-green-500';
+                strengthText.textContent = 'Fort';
+                strengthText.className = 'font-medium text-green-600';
+            }
+
+            return score >= 4;
+        }
+
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 10) + 1;
+            const num2 = Math.floor(Math.random() * 10) + 1;
+            captchaAnswer = num1 + num2;
+            document.getElementById('captcha-question').textContent = `${num1} + ${num2} = ?`;
+            document.getElementById('captcha-answer').value = '';
+        }
+
+        function updateLoginAttempts() {
+            const attemptsElement = document.getElementById('login-attempts');
+            const lockoutData = localStorage.getItem('loginLockout');
+            
+            if (lockoutData) {
+                const lockout = JSON.parse(lockoutData);
+                const now = Date.now();
+                
+                if (now < lockout.until) {
+                    const remainingTime = Math.ceil((lockout.until - now) / 60000);
+                    attemptsElement.textContent = `Compte bloqué. Réessayez dans ${remainingTime} minute(s).`;
+                    attemptsElement.className = 'text-xs text-red-500';
+                    document.getElementById('auth-form').style.pointerEvents = 'none';
+                    document.getElementById('auth-form').style.opacity = '0.5';
+                    return false;
+                } else {
+                    localStorage.removeItem('loginLockout');
+                    loginAttempts = 0;
+                }
+            }
+
+            if (loginAttempts > 0) {
+                const remaining = maxLoginAttempts - loginAttempts;
+                attemptsElement.textContent = `${loginAttempts} tentative(s) échouée(s). ${remaining} restante(s).`;
+                attemptsElement.className = 'text-xs text-orange-500';
+            } else {
+                attemptsElement.textContent = '';
+            }
+
+            document.getElementById('auth-form').style.pointerEvents = 'auto';
+            document.getElementById('auth-form').style.opacity = '1';
+            return true;
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+            
+            if (!updateLoginAttempts()) return;
+
+            showLoading(true);
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const isRegister = !document.getElementById('name-field').classList.contains('hidden');
+
+            try {
+                if (isRegister) {
+                    validateRegistration();
+                    
+                    const fullName = document.getElementById('full-name').value.trim();
+                    const role = document.getElementById('user-role').value;
+
+                    const { data, error } = await supabase.auth.signUp({
+                        email: email,
+                        password: password,
+                        options: {
+                            data: {
+                                full_name: fullName,
+                                role: role,
+                                registration_date: new Date().toISOString()
+                            }
+                        }
+                    });
+
+                    if (error) throw error;
+                    
+                    loginAttempts = 0;
+                    updateLoginAttempts();
+                    showToast('Inscription réussie ! Vérifiez votre email pour activer votre compte.', 'success');
+                    logSecurityEvent('registration_success', { email, role });
+                    
+                } else {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+
+                    if (error) {
+                        loginAttempts++;
+                        
+                        if (loginAttempts >= maxLoginAttempts) {
+                            const lockoutUntil = Date.now() + lockoutTime;
+                            localStorage.setItem('loginLockout', JSON.stringify({
+                                until: lockoutUntil,
+                                attempts: loginAttempts
+                            }));
+                            
+                            showToast(`Trop de tentatives échouées. Compte bloqué pendant ${lockoutTime / 60000} minutes.`, 'error');
+                            logSecurityEvent('account_locked', { email, attempts: loginAttempts });
+                        } else {
+                            showToast(`Identifiants incorrects. ${maxLoginAttempts - loginAttempts} tentative(s) restante(s).`, 'error');
+                            logSecurityEvent('login_failed', { email, attempts: loginAttempts });
+                        }
+                        
+                        updateLoginAttempts();
+                        throw error;
+                    }
+
+                    loginAttempts = 0;
+                    localStorage.removeItem('loginLockout');
+                    updateLoginAttempts();
+                    
+                    currentUser = data.user;
+                    
+                    if (twoFAEnabled) {
+                        pendingUser = currentUser;
+                        await send2FACode();
+                        show2FAModal();
+                    } else {
+                        completeLogin();
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur d\'authentification:', error);
+                if (error.message.includes('Invalid login credentials')) {
+                    showToast('Email ou mot de passe incorrect', 'error');
+                } else if (error.message.includes('Email not confirmed')) {
+                    showToast('Veuillez confirmer votre email avant de vous connecter', 'error');
+                } else {
+                    showToast(error.message, 'error');
+                }
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function validateRegistration() {
+            const fullName = document.getElementById('full-name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const captchaInput = parseInt(document.getElementById('captcha-answer').value);
+
+            if (fullName.length < 2) throw new Error('Le nom doit contenir au moins 2 caractères');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Format d\'email invalide');
+            if (!checkPasswordStrength()) throw new Error('Le mot de passe ne respecte pas les critères de sécurité');
+            if (password !== confirmPassword) throw new Error('Les mots de passe ne correspondent pas');
+            if (captchaInput !== captchaAnswer) {
+                generateCaptcha();
+                throw new Error('Réponse au captcha incorrecte');
+            }
+
+            return true;
+        }
+
+        function completeLogin() {
+            showMainApp();
+            updateUserInfo();
+            startSessionTimer();
+            logSecurityEvent('login_success');
+            showToast('Connexion réussie !', 'success');
+            
+            // Initialiser le dashboard après la connexion
+            setTimeout(() => {
+                initializeDashboard();
+            }, 500);
+        }
+
+        // Gestion du 2FA
+        function show2FAModal() {
+            document.getElementById('twofa-modal').classList.remove('hidden');
+            document.getElementById('twofa-modal').classList.add('flex');
+            document.getElementById('twofa-code').focus();
+        }
+
+        function cancel2FA() {
+            document.getElementById('twofa-modal').classList.add('hidden');
+            document.getElementById('twofa-modal').classList.remove('flex');
+            pendingUser = null;
+            showToast('Connexion annulée', 'info');
+        }
+
+        async function send2FACode() {
+            try {
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                sessionStorage.setItem('temp2FACode', code);
+                sessionStorage.setItem('temp2FAExpiry', (Date.now() + 5 * 60 * 1000).toString());
+                
+                // Afficher le code pour la démo
+                document.getElementById('demo-code').textContent = code;
+                
+                showToast('Code de vérification envoyé par email', 'success');
+                logSecurityEvent('2fa_code_sent');
+                
+            } catch (error) {
+                showToast('Erreur lors de l\'envoi du code 2FA', 'error');
+            }
+        }
+
+        async function verify2FA(event) {
+            event.preventDefault();
+            const inputCode = document.getElementById('twofa-code').value;
+            const storedCode = sessionStorage.getItem('temp2FACode');
+            const expiry = parseInt(sessionStorage.getItem('temp2FAExpiry'));
+
+            if (!storedCode || Date.now() > expiry) {
+                showToast('Code expiré. Veuillez demander un nouveau code.', 'error');
+                return;
+            }
+
+            if (inputCode === storedCode) {
+                sessionStorage.removeItem('temp2FACode');
+                sessionStorage.removeItem('temp2FAExpiry');
+                
+                document.getElementById('twofa-modal').classList.add('hidden');
+                document.getElementById('twofa-modal').classList.remove('flex');
+                
+                currentUser = pendingUser;
+                pendingUser = null;
+                
+                completeLogin();
+                logSecurityEvent('2fa_success');
+            } else {
+                showToast('Code de vérification incorrect', 'error');
+                logSecurityEvent('2fa_failed');
+            }
+        }
+
+        async function resend2FACode() {
+            await send2FACode();
+        }
+
+        // Récupération de mot de passe
+        function showForgotPassword() {
+            document.getElementById('forgot-password-modal').classList.remove('hidden');
+            document.getElementById('forgot-password-modal').classList.add('flex');
+        }
+
+        function closeForgotPassword() {
+            document.getElementById('forgot-password-modal').classList.add('hidden');
+            document.getElementById('forgot-password-modal').classList.remove('flex');
+        }
+
+        async function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgot-email').value.trim();
+
+            try {
+                showLoading(true);
+                
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/reset-password'
+                });
+
+                if (error) throw error;
+
+                showToast('Email de réinitialisation envoyé !', 'success');
+                closeForgotPassword();
+                logSecurityEvent('password_reset_requested', { email });
+                
+            } catch (error) {
+                showToast('Erreur lors de l\'envoi de l\'email', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Gestion des sessions
+        function startSessionTimer() {
+            sessionInterval = setInterval(() => {
+                sessionTimer--;
+                const minutes = Math.floor(sessionTimer / 60);
+                const seconds = sessionTimer % 60;
+                document.getElementById('session-timer').textContent = 
+                    `Session: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (sessionTimer <= 0) {
+                    showSecurityAlert('Session expirée. Reconnexion requise.');
+                    logout();
+                }
+            }, 1000);
+        }
+
+        function terminateSession(sessionId) {
+            showToast(`Session ${sessionId} terminée`, 'success');
+            logSecurityEvent('session_terminated', { sessionId });
+        }
+
+        function terminateAllSessions() {
+            if (confirm('Êtes-vous sûr de vouloir terminer toutes les autres sessions ?')) {
+                showToast('Toutes les autres sessions ont été terminées', 'success');
+                logSecurityEvent('all_sessions_terminated');
+            }
+        }
+
+        // Navigation et interface
+        function showLoginScreen() {
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            if (sessionInterval) {
+                clearInterval(sessionInterval);
+                sessionInterval = null;
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+        }
+
+        function updateUserInfo() {
+            if (currentUser) {
+                const userInfo = document.getElementById('user-info');
+                userInfo.textContent = currentUser.user_metadata?.full_name || currentUser.email;
+            }
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            document.getElementById(`${sectionName}-section`).classList.remove('hidden');
+            
+            const titles = {
+                'dashboard': 'Dashboard Sécurisé',
+                'documents': 'Documents Sécurisés',
+                'security': 'Centre de Sécurité',
+                'sessions': 'Gestion des Sessions',
+                'profile': 'Profil Utilisateur'
+            };
+            document.getElementById('page-title').textContent = titles[sectionName];
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active', 'bg-blue-50', 'text-blue-600');
+            });
+            event.target.classList.add('active', 'bg-blue-50', 'text-blue-600');
+
+            currentSection = sectionName;
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('password-toggle');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        async function logout() {
+            try {
+                await supabase.auth.signOut();
+                currentUser = null;
+                if (sessionInterval) {
+                    clearInterval(sessionInterval);
+                    sessionInterval = null;
+                }
+                showLoginScreen();
+                showToast('Déconnexion réussie', 'success');
+                logSecurityEvent('logout_success');
+            } catch (error) {
+                showToast('Erreur lors de la déconnexion', 'error');
+            }
+        }
+
+        function toggleDarkMode() {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('dark');
+            
+            const themeIcon = document.getElementById('theme-icon');
+            if (isDarkMode) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Fonctions de sécurité
+        function toggle2FA(method) {
+            const checkbox = document.getElementById(`2fa-${method}`);
+            const isEnabled = checkbox.checked;
+            
+            showToast(`2FA par ${method} ${isEnabled ? 'activé' : 'désactivé'}`, 'success');
+            logSecurityEvent('2fa_toggle', { method, enabled: isEnabled });
+        }
+
+        function showSecurityAlert(message) {
+            const banner = document.getElementById('security-banner');
+            const messageElement = document.getElementById('security-message');
+            
+            messageElement.textContent = message;
+            banner.classList.remove('hidden');
+            
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 10000);
+        }
+
+        function dismissSecurityAlert() {
+            document.getElementById('security-banner').classList.add('hidden');
+        }
+
+        function showSecurityLogs() {
+            showSection('security');
+        }
+
+        function logSecurityEvent(eventType, details = {}) {
+            const event = {
+                type: eventType,
+                user_id: currentUser?.id || 'anonymous',
+                timestamp: new Date().toISOString(),
+                ip_address: '192.168.1.100', // Simulé
+                user_agent: navigator.userAgent,
+                details: details
+            };
+
+            console.log('Security Event:', event);
+            
+            const events = JSON.parse(localStorage.getItem('securityEvents') || '[]');
+            events.unshift(event);
+            localStorage.setItem('securityEvents', JSON.stringify(events.slice(0, 100)));
+            
+            updateSecurityLogsDisplay();
+        }
+
+        function loadSecurityLogs() {
+            updateSecurityLogsDisplay();
+        }
+
+        function updateSecurityLogsDisplay() {
+            const events = JSON.parse(localStorage.getItem('securityEvents') || '[]');
+            const tbody = document.getElementById('security-logs');
+            
+            if (tbody) {
+                tbody.innerHTML = events.slice(0, 10).map(event => {
+                    const date = new Date(event.timestamp).toLocaleString('fr-FR');
+                    const statusClass = event.type.includes('success') ? 'text-green-600' : 
+                                       event.type.includes('failed') || event.type.includes('locked') ? 'text-red-600' : 
+                                       'text-blue-600';
+                    
+                    return `
+                        <tr>
+                            <td class="px-4 py-2">${date}</td>
+                            <td class="px-4 py-2">${event.type.replace('_', ' ')}</td>
+                            <td class="px-4 py-2">${event.ip_address}</td>
+                            <td class="px-4 py-2 ${statusClass}">${event.type.includes('success') ? 'Succès' : event.type.includes('failed') ? 'Échec' : 'Info'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Fonctions utilitaires
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast bg-white border-l-4 ${type === 'success' ? 'border-green-500' : type === 'error' ? 'border-red-500' : 'border-blue-500'} rounded-lg shadow-lg p-4 mb-2`;
+            
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle text-green-500' : type === 'error' ? 'fa-exclamation-circle text-red-500' : 'fa-info-circle text-blue-500'} mr-3"></i>
+                    <span class="text-gray-900">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        // Gestion des documents avec catégories et tags
+        let categories = [
+            { id: 1, name: 'Contrats', description: 'Documents contractuels et accords', color: 'blue', created: '2024-01-01' },
+            { id: 2, name: 'Rapports', description: 'Rapports mensuels et analyses', color: 'green', created: '2024-01-01' },
+            { id: 3, name: 'Factures', description: 'Factures et documents comptables', color: 'purple', created: '2024-01-01' },
+            { id: 4, name: 'Général', description: 'Documents divers', color: 'gray', created: '2024-01-01' },
+            { id: 5, name: 'Personnel', description: 'Documents personnels', color: 'yellow', created: '2024-01-01' },
+            { id: 6, name: 'Juridique', description: 'Documents légaux et juridiques', color: 'red', created: '2024-01-01' }
+        ];
+
+        let tags = [
+            { id: 1, name: 'urgent', category: 1, usage: 8, created: '2024-01-01' },
+            { id: 2, name: 'confidentiel', category: 6, usage: 12, created: '2024-01-01' },
+            { id: 3, name: 'archive', category: null, usage: 5, created: '2024-01-01' },
+            { id: 4, name: 'revision', category: null, usage: 3, created: '2024-01-01' },
+            { id: 5, name: 'approuve', category: 1, usage: 7, created: '2024-01-01' },
+            { id: 6, name: 'brouillon', category: null, usage: 4, created: '2024-01-01' },
+            { id: 7, name: 'important', category: null, usage: 15, created: '2024-01-01' },
+            { id: 8, name: 'client-abc', category: 1, usage: 6, created: '2024-01-01' },
+            { id: 9, name: 'mensuel', category: 2, usage: 9, created: '2024-01-01' },
+            { id: 10, name: 'paye', category: 3, usage: 11, created: '2024-01-01' }
+        ];
+
+        let documents = [
+            {
+                id: 1,
+                name: 'Contrat_Client_ABC.pdf',
+                type: 'pdf',
+                size: '2.4 MB',
+                category: 'contracts',
+                categoryId: 1,
+                status: 'private',
+                created: '2024-01-15',
+                modified: '2024-01-20',
+                encrypted: true,
+                description: 'Contrat de service avec le client ABC Corp',
+                tags: [1, 2, 5, 8] // urgent, confidentiel, approuve, client-abc
+            },
+            {
+                id: 2,
+                name: 'Rapport_Mensuel_Janvier.docx',
+                type: 'doc',
+                size: '1.8 MB',
+                category: 'reports',
+                categoryId: 2,
+                status: 'shared',
+                created: '2024-01-31',
+                modified: '2024-02-01',
+                encrypted: true,
+                description: 'Rapport mensuel des activités de janvier',
+                tags: [7, 9] // important, mensuel
+            },
+            {
+                id: 3,
+                name: 'Facture_2024_001.pdf',
+                type: 'pdf',
+                size: '156 KB',
+                category: 'invoices',
+                categoryId: 3,
+                status: 'private',
+                created: '2024-02-01',
+                modified: '2024-02-01',
+                encrypted: true,
+                description: 'Facture client numéro 001 pour février 2024',
+                tags: [10] // paye
+            },
+            {
+                id: 4,
+                name: 'Presentation_Projet.pptx',
+                type: 'doc',
+                size: '5.2 MB',
+                category: 'general',
+                categoryId: 4,
+                status: 'public',
+                created: '2024-01-28',
+                modified: '2024-01-30',
+                encrypted: false,
+                description: 'Présentation du nouveau projet',
+                tags: [6, 4] // brouillon, revision
+            },
+            {
+                id: 5,
+                name: 'Photo_Equipe.jpg',
+                type: 'img',
+                size: '3.1 MB',
+                category: 'personal',
+                categoryId: 5,
+                status: 'shared',
+                created: '2024-01-25',
+                modified: '2024-01-25',
+                encrypted: false,
+                description: 'Photo de l\'équipe lors de la réunion annuelle',
+                tags: [3] // archive
+            }
+        ];
+
+        let currentView = 'grid';
+        let selectedDocument = null;
+        let selectedTags = [];
+        let selectedCategoryColor = 'blue';
+
+        // Initialisation des documents
+        function initializeDocuments() {
+            renderDocuments();
+            setupDocumentEventListeners();
+            populateCategoryFilters();
+            setupTagSearch();
+        }
+
+        function setupDocumentEventListeners() {
+            // Recherche en temps réel
+            document.getElementById('search-docs').addEventListener('input', filterDocuments);
+            document.getElementById('filter-type').addEventListener('change', filterDocuments);
+            document.getElementById('filter-status').addEventListener('change', filterDocuments);
+            document.getElementById('filter-category').addEventListener('change', filterDocuments);
+
+            // Événements pour le gestionnaire de catégories
+            const searchTagsInput = document.getElementById('search-tags');
+            const sortTagsSelect = document.getElementById('sort-tags');
+            
+            if (searchTagsInput) {
+                searchTagsInput.addEventListener('input', renderTagsList);
+            }
+            
+            if (sortTagsSelect) {
+                sortTagsSelect.addEventListener('change', renderTagsList);
+            }
+
+            // Drag & Drop
+            const dropZone = document.getElementById('drop-zone');
+            if (dropZone) {
+                dropZone.addEventListener('click', () => document.getElementById('file-input').click());
+                dropZone.addEventListener('dragover', handleDragOver);
+                dropZone.addEventListener('drop', handleDrop);
+            }
+        }
+
+        // Gestion des catégories et tags
+        function populateCategoryFilters() {
+            const filterSelect = document.getElementById('filter-category');
+            const newTagCategorySelect = document.getElementById('new-tag-category');
+            
+            if (filterSelect) {
+                filterSelect.innerHTML = '<option value="">Toutes les catégories</option>';
+                categories.forEach(cat => {
+                    filterSelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+            }
+            
+            if (newTagCategorySelect) {
+                newTagCategorySelect.innerHTML = '<option value="">Aucune catégorie</option>';
+                categories.forEach(cat => {
+                    newTagCategorySelect.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+                });
+            }
+        }
+
+        function setupTagSearch() {
+            const tagSearchInput = document.getElementById('tag-search');
+            if (tagSearchInput) {
+                tagSearchInput.addEventListener('input', handleTagSearch);
+                tagSearchInput.addEventListener('keydown', handleTagKeydown);
+            }
+        }
+
+        function handleTagSearch(event) {
+            const query = event.target.value.toLowerCase();
+            const suggestions = document.getElementById('tag-suggestions');
+            
+            if (query.length < 2) {
+                suggestions.classList.add('hidden');
+                return;
+            }
+            
+            const matchingTags = tags.filter(tag => 
+                tag.name.toLowerCase().includes(query) && 
+                !selectedTags.includes(tag.id)
+            );
+            
+            if (matchingTags.length > 0) {
+                suggestions.innerHTML = matchingTags.map(tag => `
+                    <div class="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between" onclick="selectTag(${tag.id})">
+                        <span class="text-sm">${tag.name}</span>
+                        <span class="text-xs text-gray-500">${tag.usage} docs</span>
+                    </div>
+                `).join('');
+                suggestions.classList.remove('hidden');
+            } else {
+                suggestions.innerHTML = `
+                    <div class="px-3 py-2 text-sm text-gray-600">
+                        Aucun tag trouvé. Appuyez sur Entrée pour créer "${query}"
+                    </div>
+                `;
+                suggestions.classList.remove('hidden');
+            }
+        }
+
+        function handleTagKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const query = event.target.value.trim();
+                if (query && !tags.find(tag => tag.name.toLowerCase() === query.toLowerCase())) {
+                    createQuickTag(query);
+                }
+            } else if (event.key === 'Escape') {
+                document.getElementById('tag-suggestions').classList.add('hidden');
+            }
+        }
+
+        function selectTag(tagId) {
+            if (!selectedTags.includes(tagId)) {
+                selectedTags.push(tagId);
+                renderSelectedTags();
+                filterDocuments();
+            }
+            document.getElementById('tag-search').value = '';
+            document.getElementById('tag-suggestions').classList.add('hidden');
+        }
+
+        function removeSelectedTag(tagId) {
+            selectedTags = selectedTags.filter(id => id !== tagId);
+            renderSelectedTags();
+            filterDocuments();
+        }
+
+        function renderSelectedTags() {
+            const container = document.getElementById('selected-tags');
+            if (!container) return;
+            
+            container.innerHTML = selectedTags.map(tagId => {
+                const tag = tags.find(t => t.id === tagId);
+                if (!tag) return '';
+                
+                const category = categories.find(c => c.id === tag.category);
+                const colorClass = category ? `bg-${category.color}-100 text-${category.color}-800` : 'bg-gray-100 text-gray-800';
+                
+                return `
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass}">
+                        ${tag.name}
+                        <button onclick="removeSelectedTag(${tag.id})" class="ml-1 text-current hover:text-red-600">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </span>
+                `;
+            }).join('');
+        }
+
+        function createQuickTag(name) {
+            const newTag = {
+                id: tags.length + 1,
+                name: name.toLowerCase(),
+                category: null,
+                usage: 0,
+                created: new Date().toISOString().split('T')[0]
+            };
+            
+            tags.push(newTag);
+            selectTag(newTag.id);
+            showToast(`Tag "${name}" créé et ajouté`, 'success');
+        }
+
+        function clearAllFilters() {
+            document.getElementById('search-docs').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('tag-search').value = '';
+            selectedTags = [];
+            renderSelectedTags();
+            filterDocuments();
+            showToast('Tous les filtres ont été effacés', 'info');
+        }
+
+        // Gestionnaire de catégories
+        function showCategoryManager() {
+            document.getElementById('category-manager-modal').classList.remove('hidden');
+            document.getElementById('category-manager-modal').classList.add('flex');
+            renderCategoriesList();
+            renderTagsList();
+            updateCategoryStats();
+            populateCategoryFilters();
+        }
+
+        function closeCategoryManager() {
+            document.getElementById('category-manager-modal').classList.add('hidden');
+            document.getElementById('category-manager-modal').classList.remove('flex');
+        }
+
+        function showAddCategoryForm() {
+            document.getElementById('add-category-form').classList.remove('hidden');
+            document.getElementById('new-category-name').focus();
+        }
+
+        function hideAddCategoryForm() {
+            document.getElementById('add-category-form').classList.add('hidden');
+            document.getElementById('new-category-name').value = '';
+            document.getElementById('new-category-desc').value = '';
+            selectedCategoryColor = 'blue';
+            updateCategoryColorSelection();
+        }
+
+        function selectCategoryColor(color) {
+            selectedCategoryColor = color;
+            updateCategoryColorSelection();
+        }
+
+        function updateCategoryColorSelection() {
+            document.querySelectorAll('.category-color').forEach(btn => {
+                btn.classList.remove('border-gray-800');
+                if (btn.dataset.color === selectedCategoryColor) {
+                    btn.classList.add('border-gray-800');
+                }
+            });
+        }
+
+        function addCategory() {
+            const name = document.getElementById('new-category-name').value.trim();
+            const description = document.getElementById('new-category-desc').value.trim();
+            
+            if (!name) {
+                showToast('Le nom de la catégorie est requis', 'error');
+                return;
+            }
+            
+            if (categories.find(cat => cat.name.toLowerCase() === name.toLowerCase())) {
+                showToast('Cette catégorie existe déjà', 'error');
+                return;
+            }
+            
+            const newCategory = {
+                id: categories.length + 1,
+                name: name,
+                description: description || '',
+                color: selectedCategoryColor,
+                created: new Date().toISOString().split('T')[0]
+            };
+            
+            categories.push(newCategory);
+            renderCategoriesList();
+            updateCategoryStats();
+            populateCategoryFilters();
+            hideAddCategoryForm();
+            showToast(`Catégorie "${name}" créée avec succès`, 'success');
+        }
+
+        function renderCategoriesList() {
+            const container = document.getElementById('categories-list');
+            if (!container) return;
+            
+            container.innerHTML = categories.map(category => {
+                const docCount = documents.filter(doc => doc.categoryId === category.id).length;
+                const tagCount = tags.filter(tag => tag.category === category.id).length;
+                
+                return `
+                    <div class="bg-white rounded-lg border p-3 hover:shadow-sm transition-shadow">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-${category.color}-500 rounded-full"></div>
+                                <span class="font-medium text-sm">${category.name}</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="editCategory(${category.id})" class="text-gray-400 hover:text-blue-600 text-xs">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteCategory(${category.id})" class="text-gray-400 hover:text-red-600 text-xs">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mb-2">${category.description}</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>${docCount} documents</span>
+                            <span>${tagCount} tags</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showAddTagForm() {
+            document.getElementById('add-tag-form').classList.remove('hidden');
+            document.getElementById('new-tag-name').focus();
+        }
+
+        function hideAddTagForm() {
+            document.getElementById('add-tag-form').classList.add('hidden');
+            document.getElementById('new-tag-name').value = '';
+            document.getElementById('new-tag-category').value = '';
+        }
+
+        function addTag() {
+            const name = document.getElementById('new-tag-name').value.trim().toLowerCase();
+            const categoryId = document.getElementById('new-tag-category').value;
+            
+            if (!name) {
+                showToast('Le nom du tag est requis', 'error');
+                return;
+            }
+            
+            if (tags.find(tag => tag.name === name)) {
+                showToast('Ce tag existe déjà', 'error');
+                return;
+            }
+            
+            const newTag = {
+                id: tags.length + 1,
+                name: name,
+                category: categoryId ? parseInt(categoryId) : null,
+                usage: 0,
+                created: new Date().toISOString().split('T')[0]
+            };
+            
+            tags.push(newTag);
+            renderTagsList();
+            updateCategoryStats();
+            hideAddTagForm();
+            showToast(`Tag "${name}" créé avec succès`, 'success');
+        }
+
+        function renderTagsList() {
+            const container = document.getElementById('tags-list');
+            if (!container) return;
+            
+            const searchQuery = document.getElementById('search-tags')?.value.toLowerCase() || '';
+            const sortBy = document.getElementById('sort-tags')?.value || 'name';
+            
+            let filteredTags = tags.filter(tag => 
+                tag.name.toLowerCase().includes(searchQuery)
+            );
+            
+            // Tri
+            filteredTags.sort((a, b) => {
+                switch (sortBy) {
+                    case 'usage':
+                        return b.usage - a.usage;
+                    case 'category':
+                        const catA = categories.find(c => c.id === a.category)?.name || 'Zzz';
+                        const catB = categories.find(c => c.id === b.category)?.name || 'Zzz';
+                        return catA.localeCompare(catB);
+                    case 'date':
+                        return new Date(b.created) - new Date(a.created);
+                    default:
+                        return a.name.localeCompare(b.name);
+                }
+            });
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${filteredTags.map(tag => {
+                        const category = categories.find(c => c.id === tag.category);
+                        const colorClass = category ? `bg-${category.color}-100 text-${category.color}-800 border-${category.color}-200` : 'bg-gray-100 text-gray-800 border-gray-200';
+                        
+                        return `
+                            <div class="border rounded-lg p-3 hover:shadow-sm transition-shadow ${colorClass}">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-medium text-sm">${tag.name}</span>
+                                    <div class="flex items-center space-x-1">
+                                        <button onclick="editTag(${tag.id})" class="text-current opacity-60 hover:opacity-100 text-xs">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="deleteTag(${tag.id})" class="text-current opacity-60 hover:opacity-100 text-xs">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between text-xs opacity-75">
+                                    <span>${category ? category.name : 'Sans catégorie'}</span>
+                                    <span>${tag.usage} utilisations</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function updateCategoryStats() {
+            document.getElementById('total-tags').textContent = tags.length;
+            document.getElementById('used-tags').textContent = tags.filter(tag => tag.usage > 0).length;
+            document.getElementById('total-categories').textContent = categories.length;
+            
+            const mostUsedTag = tags.reduce((max, tag) => tag.usage > max.usage ? tag : max, { usage: 0 });
+            document.getElementById('popular-tag').textContent = mostUsedTag.name || '-';
+        }
+
+        function editCategory(categoryId) {
+            showToast('Fonctionnalité d\'édition à venir', 'info');
+        }
+
+        function deleteCategory(categoryId) {
+            const category = categories.find(c => c.id === categoryId);
+            if (!category) return;
+            
+            const docsCount = documents.filter(doc => doc.categoryId === categoryId).length;
+            const tagsCount = tags.filter(tag => tag.category === categoryId).length;
+            
+            if (docsCount > 0 || tagsCount > 0) {
+                if (!confirm(`Cette catégorie contient ${docsCount} documents et ${tagsCount} tags. Voulez-vous vraiment la supprimer ?`)) {
+                    return;
+                }
+            }
+            
+            categories = categories.filter(c => c.id !== categoryId);
+            // Mettre à jour les documents et tags
+            documents.forEach(doc => {
+                if (doc.categoryId === categoryId) {
+                    doc.categoryId = null;
+                    doc.category = 'general';
+                }
+            });
+            tags.forEach(tag => {
+                if (tag.category === categoryId) {
+                    tag.category = null;
+                }
+            });
+            
+            renderCategoriesList();
+            updateCategoryStats();
+            populateCategoryFilters();
+            showToast(`Catégorie "${category.name}" supprimée`, 'success');
+        }
+
+        function editTag(tagId) {
+            showToast('Fonctionnalité d\'édition à venir', 'info');
+        }
+
+        function deleteTag(tagId) {
+            const tag = tags.find(t => t.id === tagId);
+            if (!tag) return;
+            
+            if (tag.usage > 0) {
+                if (!confirm(`Ce tag est utilisé dans ${tag.usage} documents. Voulez-vous vraiment le supprimer ?`)) {
+                    return;
+                }
+            }
+            
+            tags = tags.filter(t => t.id !== tagId);
+            // Retirer le tag de tous les documents
+            documents.forEach(doc => {
+                doc.tags = doc.tags.filter(tId => tId !== tagId);
+            });
+            
+            renderTagsList();
+            updateCategoryStats();
+            showToast(`Tag "${tag.name}" supprimé`, 'success');
+        }
+
+        function renderDocuments() {
+            const filteredDocs = getFilteredDocuments();
+            
+            if (currentView === 'grid') {
+                renderGridView(filteredDocs);
+            } else {
+                renderListView(filteredDocs);
+            }
+            
+            updateDocumentStats();
+        }
+
+        function getFilteredDocuments() {
+            const searchTerm = document.getElementById('search-docs')?.value.toLowerCase() || '';
+            const typeFilter = document.getElementById('filter-type')?.value || '';
+            const statusFilter = document.getElementById('filter-status')?.value || '';
+            const categoryFilter = document.getElementById('filter-category')?.value || '';
+
+            return documents.filter(doc => {
+                const matchesSearch = doc.name.toLowerCase().includes(searchTerm) || 
+                                    doc.description.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || doc.type === typeFilter;
+                const matchesStatus = !statusFilter || doc.status === statusFilter;
+                const matchesCategory = !categoryFilter || doc.categoryId == categoryFilter;
+                const matchesTags = selectedTags.length === 0 || 
+                                  selectedTags.every(tagId => doc.tags.includes(tagId));
+                
+                return matchesSearch && matchesType && matchesStatus && matchesCategory && matchesTags;
+            });
+        }
+
+        function renderGridView(docs) {
+            const grid = document.getElementById('documents-grid');
+            if (!grid) return;
+
+            grid.innerHTML = docs.map(doc => {
+                const category = categories.find(c => c.id === doc.categoryId);
+                const docTags = doc.tags.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean);
+                
+                return `
+                    <div class="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer" onclick="openDocument(${doc.id})">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 ${getDocumentColor(doc.type)} rounded-lg flex items-center justify-center">
+                                <i class="${getDocumentIcon(doc.type)} text-white"></i>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                ${doc.encrypted ? '<i class="fas fa-lock text-green-600 text-xs"></i>' : ''}
+                                <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(doc.status)}">${getStatusText(doc.status)}</span>
+                            </div>
+                        </div>
+                        
+                        ${category ? `<div class="flex items-center mb-2">
+                            <div class="w-3 h-3 bg-${category.color}-500 rounded-full mr-2"></div>
+                            <span class="text-xs text-gray-600">${category.name}</span>
+                        </div>` : ''}
+                        
+                        <h4 class="font-medium text-sm mb-1 truncate" title="${doc.name}">${doc.name}</h4>
+                        <p class="text-xs text-gray-600 mb-2 line-clamp-2">${doc.description}</p>
+                        
+                        ${docTags.length > 0 ? `<div class="flex flex-wrap gap-1 mb-2">
+                            ${docTags.slice(0, 3).map(tag => {
+                                const tagCategory = categories.find(c => c.id === tag.category);
+                                const colorClass = tagCategory ? `bg-${tagCategory.color}-100 text-${tagCategory.color}-700` : 'bg-gray-100 text-gray-700';
+                                return `<span class="px-1.5 py-0.5 text-xs rounded ${colorClass}">${tag.name}</span>`;
+                            }).join('')}
+                            ${docTags.length > 3 ? `<span class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-600">+${docTags.length - 3}</span>` : ''}
+                        </div>` : ''}
+                        
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>${doc.size}</span>
+                            <span>${formatDate(doc.modified)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderListView(docs) {
+            const tbody = document.getElementById('documents-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = docs.map(doc => {
+                const category = categories.find(c => c.id === doc.categoryId);
+                const docTags = doc.tags.map(tagId => tags.find(t => t.id === tagId)).filter(Boolean);
+                
+                return `
+                    <tr class="hover:bg-gray-50 cursor-pointer" onclick="openDocument(${doc.id})">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 ${getDocumentColor(doc.type)} rounded flex items-center justify-center mr-3">
+                                    <i class="${getDocumentIcon(doc.type)} text-white text-sm"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-gray-900">${doc.name}</div>
+                                    <div class="flex items-center space-x-2 mt-1">
+                                        ${category ? `
+                                            <div class="flex items-center">
+                                                <div class="w-2 h-2 bg-${category.color}-500 rounded-full mr-1"></div>
+                                                <span class="text-xs text-gray-500">${category.name}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${docTags.length > 0 ? `
+                                            <div class="flex flex-wrap gap-1">
+                                                ${docTags.slice(0, 2).map(tag => {
+                                                    const tagCategory = categories.find(c => c.id === tag.category);
+                                                    const colorClass = tagCategory ? `bg-${tagCategory.color}-100 text-${tagCategory.color}-700` : 'bg-gray-100 text-gray-700';
+                                                    return `<span class="px-1 py-0.5 text-xs rounded ${colorClass}">${tag.name}</span>`;
+                                                }).join('')}
+                                                ${docTags.length > 2 ? `<span class="text-xs text-gray-500">+${docTags.length - 2}</span>` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${doc.size}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatDate(doc.modified)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full ${getStatusColor(doc.status)}">${getStatusText(doc.status)}</span>
+                            ${doc.encrypted ? '<i class="fas fa-lock text-green-600 ml-2"></i>' : ''}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="event.stopPropagation(); downloadDocument(${doc.id})" class="text-blue-600 hover:text-blue-900 mr-3">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); shareDocument(${doc.id})" class="text-green-600 hover:text-green-900 mr-3">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                            <button onclick="event.stopPropagation(); deleteDocument(${doc.id})" class="text-red-600 hover:text-red-900">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function toggleView(view) {
+            currentView = view;
+            
+            document.querySelectorAll('.view-toggle').forEach(btn => btn.classList.remove('active', 'bg-blue-100', 'text-blue-600'));
+            document.getElementById(`${view}-view`).classList.add('active', 'bg-blue-100', 'text-blue-600');
+            
+            if (view === 'grid') {
+                document.getElementById('documents-grid').classList.remove('hidden');
+                document.getElementById('documents-list').classList.add('hidden');
+            } else {
+                document.getElementById('documents-grid').classList.add('hidden');
+                document.getElementById('documents-list').classList.remove('hidden');
+            }
+            
+            renderDocuments();
+        }
+
+        function filterDocuments() {
+            renderDocuments();
+        }
+
+        function updateDocumentStats() {
+            const totalDocs = documents.length;
+            const sharedDocs = documents.filter(doc => doc.status === 'shared').length;
+            const totalSize = documents.reduce((sum, doc) => {
+                const size = parseFloat(doc.size.replace(/[^\d.]/g, ''));
+                return sum + (doc.size.includes('GB') ? size * 1024 : size);
+            }, 0);
+            
+            document.getElementById('total-docs').textContent = totalDocs;
+        }
+
+        // Modales de documents
+        function showUploadModal() {
+            document.getElementById('upload-modal').classList.remove('hidden');
+            document.getElementById('upload-modal').classList.add('flex');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('upload-modal').classList.add('hidden');
+            document.getElementById('upload-modal').classList.remove('flex');
+            document.getElementById('upload-form').reset();
+            document.getElementById('file-list').innerHTML = '';
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            displaySelectedFiles(files);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+            
+            const files = Array.from(event.dataTransfer.files);
+            displaySelectedFiles(files);
+        }
+
+        function displaySelectedFiles(files) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-2 bg-gray-50 rounded';
+                fileItem.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="${getDocumentIcon(getFileType(file.name))} text-blue-600"></i>
+                        <span class="text-sm">${file.name}</span>
+                        <span class="text-xs text-gray-500">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <button onclick="removeFile(${index})" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function handleUpload(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('file-input');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                showToast('Veuillez sélectionner au moins un fichier', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Simulation de l'upload
+            setTimeout(() => {
+                Array.from(files).forEach(file => {
+                    const newDoc = {
+                        id: documents.length + 1,
+                        name: file.name,
+                        type: getFileType(file.name),
+                        size: formatFileSize(file.size),
+                        category: document.getElementById('doc-category').value,
+                        status: document.getElementById('security-level').value,
+                        created: new Date().toISOString().split('T')[0],
+                        modified: new Date().toISOString().split('T')[0],
+                        encrypted: document.getElementById('encrypt-file').checked,
+                        description: document.getElementById('doc-description').value || 'Document téléversé'
+                    };
+                    
+                    documents.unshift(newDoc);
+                });
+                
+                renderDocuments();
+                closeUploadModal();
+                showLoading(false);
+                showToast(`${files.length} document(s) téléversé(s) avec succès`, 'success');
+                logSecurityEvent('document_uploaded', { count: files.length });
+            }, 2000);
+        }
+
+        function openDocument(docId) {
+            selectedDocument = documents.find(doc => doc.id === docId);
+            if (!selectedDocument) return;
+            
+            // Remplir les informations du document
+            document.getElementById('doc-title').textContent = selectedDocument.name;
+            document.getElementById('doc-meta').textContent = `${selectedDocument.category} • ${selectedDocument.size}`;
+            document.getElementById('doc-size').textContent = selectedDocument.size;
+            document.getElementById('doc-type').textContent = selectedDocument.type.toUpperCase();
+            document.getElementById('doc-created').textContent = formatDate(selectedDocument.created);
+            document.getElementById('doc-modified').textContent = formatDate(selectedDocument.modified);
+            document.getElementById('doc-status').textContent = getStatusText(selectedDocument.status);
+            
+            // Icône du document
+            const docIcon = document.getElementById('doc-icon');
+            docIcon.className = `w-10 h-10 ${getDocumentColor(selectedDocument.type)} rounded-lg flex items-center justify-center`;
+            docIcon.innerHTML = `<i class="${getDocumentIcon(selectedDocument.type)} text-white"></i>`;
+            
+            // Afficher la modale
+            document.getElementById('document-modal').classList.remove('hidden');
+            document.getElementById('document-modal').classList.add('flex');
+            
+            logSecurityEvent('document_viewed', { documentId: docId, documentName: selectedDocument.name });
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('document-modal').classList.add('hidden');
+            document.getElementById('document-modal').classList.remove('flex');
+            selectedDocument = null;
+        }
+
+        function downloadDocument(docId = null) {
+            const doc = docId ? documents.find(d => d.id === docId) : selectedDocument;
+            if (!doc) return;
+            
+            showToast(`Téléchargement de ${doc.name} en cours...`, 'info');
+            logSecurityEvent('document_downloaded', { documentId: doc.id, documentName: doc.name });
+            
+            // Simulation du téléchargement
+            setTimeout(() => {
+                showToast(`${doc.name} téléchargé avec succès`, 'success');
+            }, 1500);
+        }
+
+        function shareDocument(docId = null) {
+            const doc = docId ? documents.find(d => d.id === docId) : selectedDocument;
+            if (!doc) return;
+            
+            selectedDocument = doc;
+            document.getElementById('share-modal').classList.remove('hidden');
+            document.getElementById('share-modal').classList.add('flex');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.add('hidden');
+            document.getElementById('share-modal').classList.remove('flex');
+        }
+
+        function confirmShare() {
+            const email = document.getElementById('share-email').value;
+            const permissions = document.getElementById('share-permissions').value;
+            
+            if (!email) {
+                showToast('Veuillez saisir une adresse email', 'error');
+                return;
+            }
+            
+            showToast(`Document partagé avec ${email}`, 'success');
+            logSecurityEvent('document_shared', { 
+                documentId: selectedDocument.id, 
+                documentName: selectedDocument.name,
+                sharedWith: email,
+                permissions: permissions
+            });
+            
+            closeShareModal();
+        }
+
+        function showVersions() {
+            showToast('Fonctionnalité de versioning à venir', 'info');
+        }
+
+        function deleteDocument(docId = null) {
+            const doc = docId ? documents.find(d => d.id === docId) : selectedDocument;
+            if (!doc) return;
+            
+            if (confirm(`Êtes-vous sûr de vouloir supprimer "${doc.name}" ?`)) {
+                documents = documents.filter(d => d.id !== doc.id);
+                renderDocuments();
+                closeDocumentModal();
+                showToast('Document supprimé avec succès', 'success');
+                logSecurityEvent('document_deleted', { documentId: doc.id, documentName: doc.name });
+            }
+        }
+
+        // Fonctions utilitaires pour les documents
+        function getFileType(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            if (['pdf'].includes(ext)) return 'pdf';
+            if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) return 'doc';
+            if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) return 'img';
+            if (['zip', 'rar', '7z', 'tar'].includes(ext)) return 'archive';
+            return 'file';
+        }
+
+        function getDocumentIcon(type) {
+            const icons = {
+                'pdf': 'fas fa-file-pdf',
+                'doc': 'fas fa-file-word',
+                'img': 'fas fa-file-image',
+                'archive': 'fas fa-file-archive',
+                'file': 'fas fa-file-alt'
+            };
+            return icons[type] || icons['file'];
+        }
+
+        function getDocumentColor(type) {
+            const colors = {
+                'pdf': 'bg-red-500',
+                'doc': 'bg-blue-500',
+                'img': 'bg-green-500',
+                'archive': 'bg-purple-500',
+                'file': 'bg-gray-500'
+            };
+            return colors[type] || colors['file'];
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'private': 'bg-gray-100 text-gray-800',
+                'shared': 'bg-blue-100 text-blue-800',
+                'public': 'bg-green-100 text-green-800'
+            };
+            return colors[status] || colors['private'];
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'private': 'Privé',
+                'shared': 'Partagé',
+                'public': 'Public'
+            };
+            return texts[status] || 'Privé';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('fr-FR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+        }
+
+        // Analytics et Dashboard
+        let analyticsData = {
+            period: 30,
+            documents: {
+                total: 127,
+                growth: 12,
+                uploads: 23,
+                downloads: 156,
+                shares: 34
+            },
+            storage: {
+                used: 8.4,
+                total: 20,
+                percentage: 42
+            },
+            connections: {
+                monthly: 89,
+                growth: 8
+            },
+            security: {
+                score: 94,
+                encrypted: 98,
+                twofa: 100
+            },
+            activity: generateActivityData(),
+            categories: generateCategoriesData(),
+            performance: {
+                cpu: 85,
+                memory: 67,
+                storage: 42,
+                network: 92
+            }
+        };
+
+        function generateActivityData() {
+            const days = 30;
+            const data = [];
+            const today = new Date();
+            
+            for (let i = days - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                
+                data.push({
+                    date: date.toISOString().split('T')[0],
+                    uploads: Math.floor(Math.random() * 8) + 1,
+                    downloads: Math.floor(Math.random() * 15) + 5,
+                    shares: Math.floor(Math.random() * 5) + 1
+                });
+            }
+            
+            return data;
+        }
+
+        function generateCategoriesData() {
+            return categories.map(cat => ({
+                name: cat.name,
+                color: cat.color,
+                count: documents.filter(doc => doc.categoryId === cat.id).length,
+                percentage: Math.round((documents.filter(doc => doc.categoryId === cat.id).length / documents.length) * 100)
+            }));
+        }
+
+        function initializeDashboard() {
+            updateKPIs();
+            renderActivityChart();
+            renderCategoriesChart();
+            renderTopTags();
+            renderRecentActivity();
+            updatePerformanceMetrics();
+            startDashboardUpdates();
+        }
+
+        function updateKPIs() {
+            document.getElementById('kpi-total-docs').textContent = analyticsData.documents.total;
+            document.getElementById('kpi-connections').textContent = analyticsData.connections.monthly;
+            document.getElementById('kpi-security-score').textContent = analyticsData.security.score + '%';
+            document.getElementById('uploads-count').textContent = analyticsData.documents.uploads;
+            document.getElementById('downloads-count').textContent = analyticsData.documents.downloads;
+            document.getElementById('shares-count').textContent = analyticsData.documents.shares;
+        }
+
+        function renderActivityChart() {
+            const canvas = document.getElementById('activityCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const data = analyticsData.activity;
+            
+            // Configuration du graphique
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            const chartWidth = width - 2 * padding;
+            const chartHeight = height - 2 * padding;
+            
+            // Effacer le canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Trouver les valeurs max pour l'échelle
+            const maxUploads = Math.max(...data.map(d => d.uploads));
+            const maxDownloads = Math.max(...data.map(d => d.downloads));
+            const maxValue = Math.max(maxUploads, maxDownloads);
+            
+            // Dessiner les axes
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            
+            // Axe Y
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.stroke();
+            
+            // Axe X
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Lignes de grille horizontales
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (chartHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+                
+                // Labels Y
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(Math.round(maxValue - (maxValue / 5) * i), padding - 5, y + 3);
+            }
+            
+            // Dessiner les courbes
+            const stepX = chartWidth / (data.length - 1);
+            
+            // Courbe des téléchargements (bleu)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            data.forEach((point, index) => {
+                const x = padding + index * stepX;
+                const y = height - padding - (point.downloads / maxValue) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Courbe des téléversements (vert)
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            data.forEach((point, index) => {
+                const x = padding + index * stepX;
+                const y = height - padding - (point.uploads / maxValue) * chartHeight;
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Points sur les courbes
+            data.forEach((point, index) => {
+                const x = padding + index * stepX;
+                
+                // Point téléchargements
+                const yDownloads = height - padding - (point.downloads / maxValue) * chartHeight;
+                ctx.fillStyle = '#3b82f6';
+                ctx.beginPath();
+                ctx.arc(x, yDownloads, 3, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Point téléversements
+                const yUploads = height - padding - (point.uploads / maxValue) * chartHeight;
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(x, yUploads, 3, 0, 2 * Math.PI);
+                ctx.fill();
+            });
+            
+            // Légende
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'left';
+            
+            // Téléchargements
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(padding, 10, 12, 12);
+            ctx.fillStyle = '#374151';
+            ctx.fillText('Téléchargements', padding + 20, 21);
+            
+            // Téléversements
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(padding + 120, 10, 12, 12);
+            ctx.fillStyle = '#374151';
+            ctx.fillText('Téléversements', padding + 140, 21);
+        }
+
+        function renderCategoriesChart() {
+            const canvas = document.getElementById('categoriesCanvas');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const data = analyticsData.categories.filter(cat => cat.count > 0);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 20;
+            
+            // Effacer le canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let currentAngle = -Math.PI / 2; // Commencer en haut
+            const total = data.reduce((sum, cat) => sum + cat.count, 0);
+            
+            const colors = {
+                blue: '#3b82f6',
+                green: '#10b981',
+                purple: '#8b5cf6',
+                red: '#ef4444',
+                yellow: '#f59e0b',
+                indigo: '#6366f1',
+                gray: '#6b7280'
+            };
+            
+            // Dessiner les segments
+            data.forEach((category, index) => {
+                const sliceAngle = (category.count / total) * 2 * Math.PI;
+                
+                ctx.fillStyle = colors[category.color] || colors.gray;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Bordure
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                currentAngle += sliceAngle;
+            });
+            
+            // Cercle central
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius * 0.4, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Texte central
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(total, centerX, centerY - 5);
+            ctx.font = '10px sans-serif';
+            ctx.fillText('Documents', centerX, centerY + 10);
+            
+            // Générer la légende
+            renderCategoriesLegend(data, colors);
+        }
+
+        function renderCategoriesLegend(data, colors) {
+            const legendContainer = document.getElementById('categories-legend');
+            if (!legendContainer) return;
+            
+            legendContainer.innerHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    ${data.map(category => `
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: ${colors[category.color]}"></div>
+                            <span class="text-xs text-gray-600">${category.name}</span>
+                            <span class="text-xs font-medium">${category.count}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderTopTags() {
+            const container = document.getElementById('top-tags-list');
+            if (!container) return;
+            
+            const sortedTags = [...tags]
+                .filter(tag => tag.usage > 0)
+                .sort((a, b) => b.usage - a.usage)
+                .slice(0, 5);
+            
+            container.innerHTML = sortedTags.map(tag => {
+                const category = categories.find(c => c.id === tag.category);
+                const colorClass = category ? `bg-${category.color}-100 text-${category.color}-800` : 'bg-gray-100 text-gray-800';
+                
+                return `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs rounded ${colorClass}">${tag.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${(tag.usage / Math.max(...tags.map(t => t.usage))) * 100}%"></div>
+                            </div>
+                            <span class="text-xs text-gray-600 w-6 text-right">${tag.usage}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderRecentActivity() {
+            const container = document.getElementById('recent-activity');
+            if (!container) return;
+            
+            const activities = [
+                { type: 'upload', user: 'Vous', action: 'avez téléversé', target: 'Contrat_2024.pdf', time: 'Il y a 5 min', icon: 'fa-upload', color: 'blue' },
+                { type: 'download', user: 'Marie D.', action: 'a téléchargé', target: 'Rapport_Janvier.docx', time: 'Il y a 12 min', icon: 'fa-download', color: 'green' },
+                { type: 'share', user: 'Vous', action: 'avez partagé', target: 'Facture_001.pdf', time: 'Il y a 25 min', icon: 'fa-share-alt', color: 'purple' },
+                { type: 'edit', user: 'Jean M.', action: 'a modifié', target: 'Présentation.pptx', time: 'Il y a 1h', icon: 'fa-edit', color: 'orange' },
+                { type: 'delete', user: 'Vous', action: 'avez supprimé', target: 'Ancien_fichier.doc', time: 'Il y a 2h', icon: 'fa-trash', color: 'red' }
+            ];
+            
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded">
+                    <div class="w-8 h-8 bg-${activity.color}-100 rounded-full flex items-center justify-center">
+                        <i class="fas ${activity.icon} text-${activity.color}-600 text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm">
+                            <span class="font-medium">${activity.user}</span>
+                            <span class="text-gray-600">${activity.action}</span>
+                            <span class="font-medium">${activity.target}</span>
+                        </p>
+                        <p class="text-xs text-gray-500">${activity.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updatePerformanceMetrics() {
+            // Simulation de données en temps réel
+            setInterval(() => {
+                analyticsData.performance.cpu = Math.max(60, Math.min(95, analyticsData.performance.cpu + (Math.random() - 0.5) * 10));
+                analyticsData.performance.memory = Math.max(50, Math.min(90, analyticsData.performance.memory + (Math.random() - 0.5) * 8));
+                analyticsData.performance.network = Math.max(80, Math.min(100, analyticsData.performance.network + (Math.random() - 0.5) * 5));
+                
+                // Mettre à jour l'affichage serait fait ici avec des graphiques plus avancés
+                document.getElementById('last-update').textContent = 'Il y a ' + Math.floor(Math.random() * 60) + 's';
+            }, 30000); // Mise à jour toutes les 30 secondes
+        }
+
+        function startDashboardUpdates() {
+            // Mise à jour périodique des données
+            setInterval(() => {
+                if (currentSection === 'dashboard') {
+                    updateKPIs();
+                    renderRecentActivity();
+                }
+            }, 60000); // Mise à jour toutes les minutes
+        }
+
+        // Fonctions d'interaction du dashboard
+        function updateAnalyticsPeriod() {
+            const period = document.getElementById('analytics-period').value;
+            analyticsData.period = parseInt(period);
+            analyticsData.activity = generateActivityData();
+            
+            if (currentSection === 'dashboard') {
+                renderActivityChart();
+                showToast(`Période mise à jour: ${period} jours`, 'info');
+            }
+        }
+
+        function refreshAnalytics() {
+            showLoading(true);
+            
+            // Simulation du rechargement des données
+            setTimeout(() => {
+                analyticsData.activity = generateActivityData();
+                analyticsData.categories = generateCategoriesData();
+                
+                if (currentSection === 'dashboard') {
+                    renderActivityChart();
+                    renderCategoriesChart();
+                    renderTopTags();
+                    renderRecentActivity();
+                }
+                
+                showLoading(false);
+                showToast('Données actualisées', 'success');
+            }, 1500);
+        }
+
+        function exportAnalytics() {
+            showLoading(true);
+            
+            // Simulation de l'export
+            setTimeout(() => {
+                const data = {
+                    period: analyticsData.period,
+                    exported_at: new Date().toISOString(),
+                    summary: {
+                        total_documents: analyticsData.documents.total,
+                        total_uploads: analyticsData.documents.uploads,
+                        total_downloads: analyticsData.documents.downloads,
+                        total_shares: analyticsData.documents.shares,
+                        storage_used: analyticsData.storage.used + 'GB',
+                        security_score: analyticsData.security.score + '%'
+                    },
+                    categories: analyticsData.categories,
+                    top_tags: tags.filter(t => t.usage > 0).sort((a, b) => b.usage - a.usage).slice(0, 10)
+                };
+                
+                // Créer et télécharger le fichier JSON
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `jarchiv-analytics-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showLoading(false);
+                showToast('Rapport d\'analytics exporté', 'success');
+                logSecurityEvent('analytics_exported');
+            }, 2000);
+        }
+
+        function changeChartType(chart, type) {
+            // Mettre à jour les boutons actifs
+            document.querySelectorAll(`[data-chart="${chart}"]`).forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-100', 'text-blue-600');
+            });
+            document.querySelector(`[data-chart="${chart}"][data-type="${type}"]`).classList.add('active', 'bg-blue-100', 'text-blue-600');
+            
+            // Redessiner le graphique selon le type
+            if (chart === 'activity') {
+                renderActivityChart(); // Pour l'instant, même rendu
+                showToast(`Graphique changé en ${type}`, 'info');
+            }
+        }
+
+        function toggleChartView(chart) {
+            showToast('Vue étendue à venir', 'info');
+        }
+
+        function showAllTags() {
+            showCategoryManager();
+            // Basculer vers l'onglet tags si nécessaire
+        }
+
+        function showActivityLog() {
+            showSection('security');
+            showToast('Consultez l\'historique dans la section Sécurité', 'info');
+        }
+
+        // Fonctions de profil (stubs)
+        function updateProfile(event) {
+            event.preventDefault();
+            showToast('Profil mis à jour avec succès', 'success');
+            logSecurityEvent('profile_updated');
+        }
+
+        function changePassword(event) {
+            event.preventDefault();
+            showToast('Mot de passe changé avec succès', 'success');
+            logSecurityEvent('password_changed');
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97db206914ebeeea',t:'MTc1NzYzNTI0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
