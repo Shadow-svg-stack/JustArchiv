@@ -69,58 +69,6 @@
             window.initApp();
         });
     </script>
-   // Recherche full-text avancée via Supabase (fonction RPC)
-<script>  
-async function searchDocumentsFullText(query) {
-  if (!window.supabaseClient) {
-    throw new Error("Supabase non initialisé");
-  }
-  if (!query || query.trim().length < 2) return [];
-
-  const { data, error } = await window.supabaseClient
-    .rpc('search_documents_fulltext', { query_text: query });
-
-  if (error) {
-    console.error('Erreur recherche full-text:', error.message);
-    return [];
-  }
-  return data; // tableau de documents avec ranking
-}
-
-// Exemple d’intégration avec le champ de recherche avancée
-document.getElementById('advancedSearchText').addEventListener('input', async (e) => {
-  const query = e.target.value.trim();
-  if (query.length < 2) {
-    // Efface les résultats si la recherche est trop courte
-    document.getElementById('searchResultsGrid').innerHTML = '';
-    document.getElementById('searchResultsCount').textContent = '0 résultats trouvés';
-    return;
-  }
-  // Optionnel : debounce pour éviter trop de requêtes (non inclus ici)
-  const results = await searchDocumentsFullText(query);
-
-  // Affiche le nombre de résultats
-  document.getElementById('searchResultsCount').textContent = `${results.length} résultats trouvés`;
-
-  // Affiche les résultats (exemple de rendu rapide)
-  const grid = document.getElementById('searchResultsGrid');
-  grid.innerHTML = '';
-  results.forEach(doc => {
-    const div = document.createElement('div');
-    div.className = "p-4 bg-white rounded-lg shadow mb-3";
-    div.innerHTML = `
-      <h5 class="font-semibold mb-2">${doc.title || "(Sans titre)"}</h5>
-      <p class="text-gray-500 text-sm mb-1">${doc.description || ""}</p>
-      <div class="text-xs text-gray-400 mb-1">Score : ${doc.rank.toFixed(2)} • ${new Date(doc.created_at).toLocaleDateString()}</div>
-      <div class="flex flex-wrap gap-2 mb-1">
-        ${(doc.tags || []).map(tag => `<span class="bg-blue-100 text-blue-600 px-2 py-1 rounded">${tag}</span>`).join('')}
-      </div>
-    `;
-    grid.appendChild(div);
-  });
-  document.getElementById('searchResults').classList.remove('hidden');
-});
-</script>
 
     <style>
         .sidebar-transition { transition: transform 0.3s ease-in-out; }
@@ -207,7 +155,7 @@ document.getElementById('advancedSearchText').addEventListener('input', async (e
                 </div>
                 <div id="loadingStep2" class="flex items-center opacity-50">
                     <i class="fas fa-spinner fa-spin mr-1"></i>
-                    Firebase
+                    Supabase
                 </div>
                 <div id="loadingStep3" class="flex items-center opacity-50">
                     <i class="fas fa-clock mr-1"></i>
@@ -2518,8 +2466,55 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';</code></pre>
         }
 
         // Recherche avancée
-        function performAdvancedSearch() {
-            showToast('Recherche avancée en cours...', 'info');
+async function searchDocumentsFullText(query) {
+  if (!window.supabaseClient) {
+    throw new Error("Supabase non initialisé");
+  }
+  if (!query || query.trim().length < 2) return [];
+
+  const { data, error } = await window.supabaseClient
+    .rpc('search_documents_fulltext', { query_text: query });
+
+  if (error) {
+    console.error('Erreur recherche full-text:', error.message);
+    return [];
+  }
+  return data; // tableau de documents avec ranking
+}
+
+// Exemple d’intégration avec le champ de recherche avancée
+document.getElementById('advancedSearchText').addEventListener('input', async (e) => {
+  const query = e.target.value.trim();
+  if (query.length < 2) {
+    // Efface les résultats si la recherche est trop courte
+    document.getElementById('searchResultsGrid').innerHTML = '';
+    document.getElementById('searchResultsCount').textContent = '0 résultats trouvés';
+    return;
+  }
+  // Optionnel : debounce pour éviter trop de requêtes (non inclus ici)
+  const results = await searchDocumentsFullText(query);
+
+  // Affiche le nombre de résultats
+  document.getElementById('searchResultsCount').textContent = `${results.length} résultats trouvés`;
+
+  // Affiche les résultats (exemple de rendu rapide)
+  const grid = document.getElementById('searchResultsGrid');
+  grid.innerHTML = '';
+  results.forEach(doc => {
+    const div = document.createElement('div');
+    div.className = "p-4 bg-white rounded-lg shadow mb-3";
+    div.innerHTML = `
+      <h5 class="font-semibold mb-2">${doc.title || "(Sans titre)"}</h5>
+      <p class="text-gray-500 text-sm mb-1">${doc.description || ""}</p>
+      <div class="text-xs text-gray-400 mb-1">Score : ${doc.rank.toFixed(2)} • ${new Date(doc.created_at).toLocaleDateString()}</div>
+      <div class="flex flex-wrap gap-2 mb-1">
+        ${(doc.tags || []).map(tag => `<span class="bg-blue-100 text-blue-600 px-2 py-1 rounded">${tag}</span>`).join('')}
+      </div>
+    `;
+    grid.appendChild(div);
+  });
+  document.getElementById('searchResults').classList.remove('hidden');
+});
             // Logique de recherche avancée à implémenter
         }
 
@@ -2597,5 +2592,5 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';</code></pre>
         link.href = manifestURL;
         document.head.appendChild(link);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ea671e625ccea7',t:'MTc1Nzc5NTQzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97eaf15537ed014a',t:'MTc1NzgwMTA5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
