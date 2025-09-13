@@ -34,15 +34,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // 🔧 CONFIGURATION SUPABASE
-        // Remplacez ces valeurs par vos vraies informations Supabase :
-        
-        // MÉTHODE 1: Configuration directe (pour test rapide)
-        const supabaseUrl = 'https://VOTRE-PROJET-ID.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Votre clé anonyme
-        
-        // MÉTHODE 2: Via variables d'environnement (recommandé)
-        // const supabaseUrl = window.ENV?.SUPABASE_URL || 'https://demo.supabase.co';
-        // const supabaseKey = window.ENV?.SUPABASE_ANON_KEY || 'demo-key';
+      
+        const supabaseUrl = window.ENV?.SUPABASE_URL || 'https://demo.supabase.co';
+        const supabaseKey = window.ENV?.SUPABASE_ANON_KEY || 'demo-key';
 
         // Initialisation Supabase
         let supabaseClient;
