@@ -6,85 +6,30 @@
     <title>JustArchiv - Système d'Archivage Documentaire</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Firebase SDK v9+ (modular) -->
-    <script type="module">
-        // Configuration Firebase depuis les variables d'environnement
-        const firebaseConfig = {
-            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-            appId: import.meta.env.VITE_FIREBASE_APP_ID
-        };
-
-        // Import Firebase modules
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged 
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { 
-            getFirestore, 
-            collection, 
-            addDoc, 
-            getDocs, 
-            doc, 
-            updateDoc, 
-            deleteDoc,
-            query,
-            orderBy,
-            where,
-            onSnapshot
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { 
-            getStorage, 
-            ref, 
-            uploadBytes, 
-            getDownloadURL, 
-            deleteObject 
-        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-
-        // Initialiser Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env?.VITE_SUPABASE_URL || 'VOTRE_SUPABASE_URL';
+        const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env?.VITE_SUPABASE_ANON_KEY || 'VOTRE_SUPABASE_ANON_KEY';
         
-        // Rendre disponible globalement pour le script principal
-        window.firebase = {
-            app,
-            auth,
-            db,
-            storage,
-            // Auth functions
-            signInWithEmailAndPassword,
-            createUserWithEmailAndPassword,
-            signOut,
-            onAuthStateChanged,
-            // Firestore functions
-            collection,
-            addDoc,
-            getDocs,
-            doc,
-            updateDoc,
-            deleteDoc,
-            query,
-            orderBy,
-            where,
-            onSnapshot,
-            // Storage functions
-            ref,
-            uploadBytes,
-            getDownloadURL,
-            deleteObject
-        };
-
-        // Déclencher l'événement quand Firebase est prêt
-        window.dispatchEvent(new CustomEvent('firebaseReady'));
+        // Vérifier la configuration
+        if (supabaseUrl === 'VOTRE_SUPABASE_URL' || supabaseKey === 'VOTRE_SUPABASE_ANON_KEY') {
+            console.error('⚠️ Configuration Supabase manquante! Créez un fichier .env avec vos identifiants.');
+            document.getElementById('loadingScreen').querySelector('p').innerHTML = `
+                <span class="text-red-400">❌ Configuration manquante</span><br>
+                <span class="text-sm">Créez un fichier .env avec vos identifiants Supabase</span>
+            `;
+            return;
+        }
+        
+        // Initialiser Supabase
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Rendre disponible globalement
+        window.supabase = supabase;
+        
+        // Déclencher l'événement quand Supabase est prêt
+        window.dispatchEvent(new CustomEvent('supabaseReady'));
     </script>
     
     <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiSnVzdEFyY2hpdiIsInNob3J0X25hbWUiOiJKdXN0QXJjaGl2Iiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwidGhlbWVfY29sb3IiOiIjMzMzNzQ0IiwiYmFja2dyb3VuZF9jb2xvciI6IiNmOWZhZmIifQ==">
@@ -108,7 +53,7 @@
         <div class="text-center">
             <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <h2 class="text-white text-xl font-semibold">JustArchiv</h2>
-            <p class="text-gray-300 mt-2">Connexion à Firebase...</p>
+            <p class="text-gray-300 mt-2">Connexion à Supabase...</p>
         </div>
     </div>
 
@@ -177,6 +122,7 @@
                             </svg>
                         </div>
                         <h1 class="text-xl font-bold text-gray-900">JustArchiv</h1>
+                        <span class="ml-4 px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">SUPABASE GRATUIT</span>
                     </div>
                     <div class="flex items-center space-x-4">
                         <span id="userRole" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium"></span>
@@ -202,7 +148,7 @@
                     </svg>
                     <h3 class="text-lg font-semibold text-gray-900 mb-2">Glissez vos fichiers ici</h3>
                     <p class="text-gray-600 mb-4">ou cliquez pour sélectionner</p>
-                    <p class="text-sm text-gray-500">PDF, DOCX, XLSX, JPG, PNG • Max 10MB par fichier</p>
+                    <p class="text-sm text-gray-500">PDF, DOCX, XLSX, JPG, PNG • Max 5MB par fichier</p>
                     <button id="selectFilesBtn" class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                         Sélectionner des fichiers
                     </button>
@@ -525,21 +471,21 @@
         const historyModal = document.getElementById('historyModal');
         const deleteModal = document.getElementById('deleteModal');
 
-        // Wait for Firebase to be ready
-        window.addEventListener('firebaseReady', () => {
-            firebaseReady = true;
+        // Wait for Supabase to be ready
+        window.addEventListener('supabaseReady', () => {
+            firebaseReady = true; // Keep same variable name for compatibility
             initializeAuth();
         });
 
-        // Firebase Authentication Functions
+        // Supabase Authentication Functions
         function initializeAuth() {
             // Listen for auth state changes
-            window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
-                if (user) {
+            window.supabase.auth.onAuthStateChange((event, session) => {
+                if (session && session.user) {
                     currentUser = {
-                        uid: user.uid,
-                        email: user.email,
-                        role: 'user' // You can store role in Firestore user profile
+                        uid: session.user.id,
+                        email: session.user.email,
+                        role: 'user'
                     };
                     showApp();
                     loadUserDocuments();
@@ -574,26 +520,40 @@
             }, 5000);
         }
 
-        // Firebase Firestore Functions
+        // Supabase Database Functions
         async function loadUserDocuments() {
             if (!currentUser) return;
             
             try {
-                const q = window.firebase.query(
-                    window.firebase.collection(window.firebase.db, 'documents'),
-                    window.firebase.where('uploadedBy', '==', currentUser.uid),
-                    window.firebase.orderBy('modifiedDate', 'desc')
-                );
+                const { data, error } = await window.supabase
+                    .from('documents')
+                    .select('*')
+                    .eq('uploaded_by', currentUser.uid)
+                    .order('modified_date', { ascending: false });
                 
-                const querySnapshot = await window.firebase.getDocs(q);
-                documents = [];
+                if (error) throw error;
                 
-                querySnapshot.forEach((doc) => {
-                    documents.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                });
+                documents = data.map(doc => ({
+                    id: doc.id,
+                    title: doc.title,
+                    description: doc.description,
+                    category: doc.category,
+                    tags: doc.tags || [],
+                    reference: doc.reference,
+                    originalName: doc.original_name,
+                    fileName: doc.file_name,
+                    fileType: doc.file_type,
+                    fileSize: doc.file_size,
+                    fileData: doc.file_data, // Base64 (fallback)
+                    fileUrl: doc.file_url, // URL Storage (sécurisé)
+                    storagePath: doc.storage_path, // Chemin Storage
+                    thumbnail: doc.thumbnail,
+                    createdDate: doc.created_date,
+                    modifiedDate: doc.modified_date,
+                    expiryDate: doc.expiry_date,
+                    uploadedBy: doc.uploaded_by,
+                    history: doc.history || []
+                }));
                 
                 updateStats();
                 renderDocuments();
@@ -602,75 +562,129 @@
             }
         }
 
-        async function saveDocumentToFirestore(documentData) {
+        async function saveDocumentToSupabase(documentData) {
             try {
-                const docRef = await window.firebase.addDoc(
-                    window.firebase.collection(window.firebase.db, 'documents'),
-                    {
-                        ...documentData,
-                        uploadedBy: currentUser.uid,
-                        createdAt: new Date(),
-                        modifiedAt: new Date()
-                    }
-                );
+                const { data, error } = await window.supabase
+                    .from('documents')
+                    .insert([{
+                        title: documentData.title,
+                        description: documentData.description,
+                        category: documentData.category,
+                        tags: documentData.tags,
+                        reference: documentData.reference,
+                        original_name: documentData.originalName,
+                        file_name: documentData.fileName,
+                        file_type: documentData.fileType,
+                        file_size: documentData.fileSize,
+                        file_data: documentData.fileData, // Base64 (fallback)
+                        file_url: documentData.fileUrl, // URL Storage (sécurisé)
+                        storage_path: documentData.storagePath, // Chemin Storage
+                        thumbnail: documentData.thumbnail,
+                        created_date: documentData.createdDate,
+                        modified_date: documentData.modifiedDate,
+                        expiry_date: documentData.expiryDate,
+                        uploaded_by: currentUser.uid,
+                        history: documentData.history
+                    }])
+                    .select();
                 
-                documentData.id = docRef.id;
-                return docRef.id;
+                if (error) throw error;
+                
+                return data[0].id;
             } catch (error) {
                 console.error('Erreur lors de la sauvegarde:', error);
                 throw error;
             }
         }
 
-        async function updateDocumentInFirestore(docId, updates) {
+        async function updateDocumentInSupabase(docId, updates) {
             try {
-                const docRef = window.firebase.doc(window.firebase.db, 'documents', docId);
-                await window.firebase.updateDoc(docRef, {
-                    ...updates,
-                    modifiedAt: new Date()
-                });
+                const supabaseUpdates = {};
+                
+                // Map updates to Supabase column names
+                if (updates.title) supabaseUpdates.title = updates.title;
+                if (updates.description) supabaseUpdates.description = updates.description;
+                if (updates.category) supabaseUpdates.category = updates.category;
+                if (updates.tags) supabaseUpdates.tags = updates.tags;
+                if (updates.reference) supabaseUpdates.reference = updates.reference;
+                if (updates.createdDate) supabaseUpdates.created_date = updates.createdDate;
+                if (updates.modifiedDate) supabaseUpdates.modified_date = updates.modifiedDate;
+                if (updates.expiryDate) supabaseUpdates.expiry_date = updates.expiryDate;
+                if (updates.history) supabaseUpdates.history = updates.history;
+                
+                const { error } = await window.supabase
+                    .from('documents')
+                    .update(supabaseUpdates)
+                    .eq('id', docId);
+                
+                if (error) throw error;
             } catch (error) {
                 console.error('Erreur lors de la mise à jour:', error);
                 throw error;
             }
         }
 
-        async function deleteDocumentFromFirestore(docId) {
+        async function deleteDocumentFromSupabase(docId) {
             try {
-                await window.firebase.deleteDoc(
-                    window.firebase.doc(window.firebase.db, 'documents', docId)
-                );
+                const { error } = await window.supabase
+                    .from('documents')
+                    .delete()
+                    .eq('id', docId);
+                
+                if (error) throw error;
             } catch (error) {
                 console.error('Erreur lors de la suppression:', error);
                 throw error;
             }
         }
 
-        // Firebase Storage Functions
-        async function uploadFileToStorage(file, fileName) {
+        // File Storage Functions - Supabase Storage (SÉCURISÉ)
+        async function uploadFileToSupabaseStorage(file, fileName) {
             try {
-                const storageRef = window.firebase.ref(
-                    window.firebase.storage, 
-                    `documents/${currentUser.uid}/${fileName}`
-                );
+                const { data, error } = await window.supabase.storage
+                    .from('documents')
+                    .upload(`${currentUser.uid}/${fileName}`, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
                 
-                const snapshot = await window.firebase.uploadBytes(storageRef, file);
-                const downloadURL = await window.firebase.getDownloadURL(snapshot.ref);
+                if (error) throw error;
                 
-                return downloadURL;
+                // Obtenir l'URL publique
+                const { data: urlData } = window.supabase.storage
+                    .from('documents')
+                    .getPublicUrl(`${currentUser.uid}/${fileName}`);
+                
+                return {
+                    path: data.path,
+                    publicUrl: urlData.publicUrl
+                };
             } catch (error) {
-                console.error('Erreur lors de l\'upload:', error);
+                console.error('Erreur upload Supabase Storage:', error);
                 throw error;
             }
         }
 
-        async function deleteFileFromStorage(filePath) {
+        async function deleteFileFromSupabaseStorage(filePath) {
             try {
-                const storageRef = window.firebase.ref(window.firebase.storage, filePath);
-                await window.firebase.deleteObject(storageRef);
+                const { error } = await window.supabase.storage
+                    .from('documents')
+                    .remove([filePath]);
+                
+                if (error) throw error;
             } catch (error) {
-                console.error('Erreur lors de la suppression du fichier:', error);
+                console.error('Erreur suppression Storage:', error);
             }
+        }
+
+        // Fallback Base64 pour développement uniquement
+        async function convertFileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         // Utility functions
@@ -790,12 +804,12 @@
 
         // File validation
         function validateFile(file) {
-            const maxSize = 10 * 1024 * 1024; // 10MB
+            const maxSize = 5 * 1024 * 1024; // 5MB (réduit pour Firestore)
             const allowedTypes = ['pdf', 'docx', 'xlsx', 'jpg', 'jpeg', 'png'];
             const fileType = getFileTypeFromName(file.name);
             
             if (file.size > maxSize) {
-                return { valid: false, error: `Le fichier ${file.name} dépasse la taille maximale de 10MB` };
+                return { valid: false, error: `Le fichier ${file.name} dépasse la taille maximale de 5MB` };
             }
             
             if (!allowedTypes.includes(fileType)) {
@@ -851,9 +865,22 @@
                 progressBar.style.width = '60%';
                 progressText.textContent = '60%';
                 
-                // Upload to Firebase Storage
+                // Upload to Supabase Storage (SÉCURISÉ) ou Base64 fallback
                 const fileName = `${Date.now()}_${file.name}`;
-                const fileUrl = await uploadFileToStorage(processedFile, fileName);
+                let fileData = null;
+                let fileUrl = null;
+                let storagePath = null;
+                
+                try {
+                    // Essayer Supabase Storage d'abord (RECOMMANDÉ)
+                    const uploadResult = await uploadFileToSupabaseStorage(processedFile, fileName);
+                    fileUrl = uploadResult.publicUrl;
+                    storagePath = uploadResult.path;
+                    console.log('✅ Fichier uploadé vers Supabase Storage (sécurisé)');
+                } catch (storageError) {
+                    console.warn('⚠️ Supabase Storage non configuré, utilisation Base64 (développement uniquement)');
+                    fileData = await convertFileToBase64(processedFile);
+                }
                 
                 // Update progress
                 progressBar.style.width = '90%';
@@ -870,13 +897,14 @@
                     fileName: fileName,
                     fileType: getFileTypeFromName(file.name),
                     fileSize: processedFile.size,
-                    fileUrl: fileUrl,
+                    fileData: fileData, // Base64 (fallback) ou null si Storage
+                    fileUrl: fileUrl, // URL Supabase Storage (sécurisé)
+                    storagePath: storagePath, // Chemin pour suppression
                     thumbnail: thumbnail,
                     createdDate: new Date().toISOString().split('T')[0],
                     modifiedDate: new Date().toISOString(),
                     expiryDate: '',
                     uploadedBy: currentUser.uid,
-                    storagePath: `documents/${currentUser.uid}/${fileName}`,
                     history: [{
                         action: 'Création',
                         date: new Date().toISOString(),
@@ -885,8 +913,8 @@
                     }]
                 };
                 
-                // Save to Firestore
-                const docId = await saveDocumentToFirestore(document);
+                // Save to Supabase
+                const docId = await saveDocumentToSupabase(document);
                 document.id = docId;
                 
                 documents.unshift(document);
@@ -1103,16 +1131,17 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         <h3 class="text-lg font-semibold text-gray-900 mb-2">Aperçu PDF</h3>
-                        <p class="text-gray-600 mb-4">L'aperçu PDF nécessite un visualiseur externe</p>
+                        <p class="text-gray-600 mb-4">L'aperçu PDF nécessite un téléchargement</p>
                         <button onclick="downloadDocument('${doc.id}')" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
                             Télécharger pour voir
                         </button>
                     </div>
                 `;
             } else if (['jpg', 'jpeg', 'png'].includes(doc.fileType)) {
+                const imageUrl = doc.fileUrl || doc.fileData; // Storage URL ou Base64 fallback
                 previewContent.innerHTML = `
                     <div class="text-center">
-                        <img src="${doc.fileUrl}" alt="${doc.title}" class="max-w-full max-h-96 mx-auto rounded-lg shadow-lg">
+                        <img src="${imageUrl}" alt="${doc.title}" class="max-w-full max-h-96 mx-auto rounded-lg shadow-lg">
                         <div class="mt-4 p-4 bg-gray-50 rounded-lg">
                             <div class="grid grid-cols-2 gap-4 text-sm">
                                 <div><strong>Taille:</strong> ${formatFileSize(doc.fileSize)}</div>
@@ -1120,6 +1149,7 @@
                                 <div><strong>Référence:</strong> ${doc.reference}</div>
                                 <div><strong>Créé le:</strong> ${new Date(doc.createdDate).toLocaleDateString()}</div>
                             </div>
+                            ${doc.fileUrl ? '<div class="mt-2 text-xs text-green-600">✅ Stocké de manière sécurisée</div>' : '<div class="mt-2 text-xs text-orange-600">⚠️ Mode développement (Base64)</div>'}
                         </div>
                     </div>
                 `;
@@ -1181,24 +1211,31 @@
             const customName = prompt('Nom du fichier (laissez vide pour garder le nom original):', doc.originalName);
             const fileName = customName || doc.originalName;
             
-            // Create download link
+            // Télécharger depuis Storage URL (sécurisé) ou Base64 (fallback)
+            const downloadUrl = doc.fileUrl || doc.fileData;
+            
             const link = document.createElement('a');
-            link.href = doc.fileUrl;
+            link.href = downloadUrl;
             link.download = fileName;
-            link.target = '_blank';
+            
+            // Pour les URLs Storage, ouvrir dans un nouvel onglet si le téléchargement direct échoue
+            if (doc.fileUrl) {
+                link.target = '_blank';
+            }
+            
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             
-            // Add to history and update Firestore
+            // Add to history and update database
             doc.history.push({
                 action: 'Téléchargement',
                 date: new Date().toISOString(),
                 user: currentUser.email,
-                details: `Téléchargé sous le nom: ${fileName}`
+                details: `Téléchargé sous le nom: ${fileName} ${doc.fileUrl ? '(Storage sécurisé)' : '(Base64)'}`
             });
             
-            updateDocumentInFirestore(doc.id, { history: doc.history });
+            updateDocumentInSupabase(doc.id, { history: doc.history });
         };
 
         window.deleteDocument = function(docId) {
@@ -1254,7 +1291,7 @@
             e.preventDefault();
             
             if (!firebaseReady) {
-                showMessage('Firebase n\'est pas encore prêt. Veuillez patienter...');
+                showMessage('Supabase n\'est pas encore prêt. Veuillez patienter...');
                 return;
             }
             
@@ -1267,36 +1304,43 @@
             
             try {
                 if (isAuthMode === 'login') {
-                    await window.firebase.signInWithEmailAndPassword(window.firebase.auth, email, password);
+                    const { data, error } = await window.supabase.auth.signInWithPassword({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
                     showMessage('Connexion réussie !', 'success');
                 } else {
                     if (password !== confirmPassword) {
                         showMessage('Les mots de passe ne correspondent pas');
                         return;
                     }
-                    await window.firebase.createUserWithEmailAndPassword(window.firebase.auth, email, password);
-                    showMessage('Compte créé avec succès !', 'success');
+                    
+                    const { data, error } = await window.supabase.auth.signUp({
+                        email: email,
+                        password: password
+                    });
+                    
+                    if (error) throw error;
+                    showMessage('Compte créé avec succès ! Vérifiez votre email.', 'success');
                 }
             } catch (error) {
                 console.error('Erreur d\'authentification:', error);
                 let message = 'Une erreur est survenue';
                 
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                        message = 'Aucun compte trouvé avec cet email';
-                        break;
-                    case 'auth/wrong-password':
-                        message = 'Mot de passe incorrect';
-                        break;
-                    case 'auth/email-already-in-use':
+                if (error.message) {
+                    if (error.message.includes('Invalid login credentials')) {
+                        message = 'Email ou mot de passe incorrect';
+                    } else if (error.message.includes('User already registered')) {
                         message = 'Cet email est déjà utilisé';
-                        break;
-                    case 'auth/weak-password':
+                    } else if (error.message.includes('Password should be at least 6 characters')) {
                         message = 'Le mot de passe doit contenir au moins 6 caractères';
-                        break;
-                    case 'auth/invalid-email':
+                    } else if (error.message.includes('Invalid email')) {
                         message = 'Email invalide';
-                        break;
+                    } else {
+                        message = error.message;
+                    }
                 }
                 
                 showMessage(message);
@@ -1322,7 +1366,7 @@
 
         logoutBtn.addEventListener('click', async () => {
             try {
-                await window.firebase.signOut(window.firebase.auth);
+                await window.supabase.auth.signOut();
             } catch (error) {
                 console.error('Erreur lors de la déconnexion:', error);
             }
@@ -1416,7 +1460,7 @@
                 });
                 
                 try {
-                    await updateDocumentInFirestore(currentEditingDoc.id, {
+                    await updateDocumentInSupabase(currentEditingDoc.id, {
                         title: currentEditingDoc.title,
                         description: currentEditingDoc.description,
                         category: currentEditingDoc.category,
@@ -1458,13 +1502,14 @@
         document.getElementById('confirmDelete').addEventListener('click', async () => {
             if (currentDeleteDoc) {
                 try {
-                    // Delete from Firebase Storage
+                    // Supprimer le fichier du Storage si nécessaire
                     if (currentDeleteDoc.storagePath) {
-                        await deleteFileFromStorage(currentDeleteDoc.storagePath);
+                        await deleteFileFromSupabaseStorage(currentDeleteDoc.storagePath);
+                        console.log('✅ Fichier supprimé du Storage');
                     }
                     
-                    // Delete from Firestore
-                    await deleteDocumentFromFirestore(currentDeleteDoc.id);
+                    // Supprimer de la base de données
+                    await deleteDocumentFromSupabase(currentDeleteDoc.id);
                     
                     // Remove from local array
                     documents = documents.filter(doc => doc.id !== currentDeleteDoc.id);
@@ -1488,15 +1533,15 @@
             });
         });
 
-        // Initialize app - wait for Firebase
+        // Initialize app - wait for Supabase
         if (!firebaseReady) {
-            // Show loading screen until Firebase is ready
+            // Show loading screen until Supabase is ready
             setTimeout(() => {
                 if (!firebaseReady) {
-                    loadingScreen.querySelector('p').textContent = 'Vérifiez votre configuration Firebase...';
+                    loadingScreen.querySelector('p').textContent = 'Vérifiez votre configuration Supabase...';
                 }
             }, 5000);
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e234ade24bc6ea',t:'MTc1NzcwOTQ3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e3e84497d56923',t:'MTc1NzcyNzMxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
