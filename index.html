@@ -16,9 +16,9 @@
     
     <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9IiMyNTYzRUIiLz4KPHBhdGggZD0iTTQ1IDYwSDEzNVY3NUg0NVY2MFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik00NSA5MEgxMzVWMTA1SDQ1VjkwWiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTQ1IDEyMEgxMDVWMTM1SDQ1VjEyMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPg==">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="JustArchiv">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-status-bar-style" content="default">
+    <meta name="mobile-web-app-title" content="JustArchiv">
     
     <!-- Microsoft Tiles -->
     <meta name="msapplication-TileColor" content="#2563EB">
@@ -34,10 +34,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         // 🔧 CONFIGURATION SUPABASE
-      
         const supabaseUrl = window.ENV?.SUPABASE_URL || 'https://demo.supabase.co';
         const supabaseKey = window.ENV?.SUPABASE_ANON_KEY || 'demo-key';
-
         // Initialisation Supabase
         let supabaseClient;
         
