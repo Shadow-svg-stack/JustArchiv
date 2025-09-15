@@ -11,7 +11,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 if ("serviceworker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceworker
-      .register("/sw.js")
+      .register("/serviceworker.js")
       .then(() => console.log("✅ Service Worker enregistré"))
       .catch((err) => console.error("❌ Échec enregistrement SW:", err));
   });
