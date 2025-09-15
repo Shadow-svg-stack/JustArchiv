@@ -15,16 +15,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Database helper functions
 export const dbHelpers = {
-  // Users
+  // ================= USERS =================
   async getUserProfile(userId) {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
       .eq('id', userId)
       .single()
-    
     if (error) throw error
     return data
   },
@@ -36,12 +34,11 @@ export const dbHelpers = {
       .eq('id', userId)
       .select()
       .single()
-    
     if (error) throw error
     return data
   },
 
-  // Documents
+  // ================= DOCUMENTS =================
   async getUserDocuments(userId, { search, category, tags, sortBy, limit, offset } = {}) {
     let query = supabase
       .from('documents')
@@ -52,32 +49,17 @@ export const dbHelpers = {
       `)
       .eq('user_id', userId)
 
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
-    }
-
-    if (category) {
-      query = query.eq('category_id', category)
-    }
-
-    if (tags && tags.length > 0) {
-      query = query.in('document_tags.tag_id', tags)
-    }
-
+    if (search) query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
+    if (category) query = query.eq('category_id', category)
+    if (tags && tags.length > 0) query = query.in('document_tags.tag_id', tags)
     if (sortBy) {
       const [field, direction] = sortBy.split(':')
       query = query.order(field, { ascending: direction === 'asc' })
     } else {
       query = query.order('created_at', { ascending: false })
     }
-
-    if (limit) {
-      query = query.limit(limit)
-    }
-
-    if (offset) {
-      query = query.range(offset, offset + (limit || 10) - 1)
-    }
+    if (limit) query = query.limit(limit)
+    if (offset) query = query.range(offset, offset + (limit || 10) - 1)
 
     const { data, error } = await query
     if (error) throw error
@@ -90,7 +72,6 @@ export const dbHelpers = {
       .insert(documentData)
       .select()
       .single()
-    
     if (error) throw error
     return data
   },
@@ -102,7 +83,6 @@ export const dbHelpers = {
       .eq('id', documentId)
       .select()
       .single()
-    
     if (error) throw error
     return data
   },
@@ -112,18 +92,16 @@ export const dbHelpers = {
       .from('documents')
       .delete()
       .eq('id', documentId)
-    
     if (error) throw error
   },
 
-  // Categories
+  // ================= CATEGORIES =================
   async getUserCategories(userId) {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .eq('user_id', userId)
       .order('name')
-    
     if (error) throw error
     return data
   },
@@ -134,19 +112,17 @@ export const dbHelpers = {
       .insert(categoryData)
       .select()
       .single()
-    
     if (error) throw error
     return data
   },
 
-  // Tags
+  // ================= TAGS =================
   async getUserTags(userId) {
     const { data, error } = await supabase
       .from('tags')
       .select('*')
       .eq('user_id', userId)
       .order('name')
-    
     if (error) throw error
     return data
   },
@@ -157,12 +133,11 @@ export const dbHelpers = {
       .insert(tagData)
       .select()
       .single()
-    
     if (error) throw error
     return data
   },
 
-  // Activity logs
+  // ================= ACTIVITY LOG =================
   async logActivity(userId, action, details = {}) {
     const { error } = await supabase
       .from('activity_logs')
@@ -170,10 +145,9 @@ export const dbHelpers = {
         user_id: userId,
         action,
         details,
-        ip_address: await this.getClientIP(),
+        ip_address: await dbHelpers.getClientIP(),
         user_agent: navigator.userAgent
       })
-    
     if (error) console.error('Failed to log activity:', error)
   },
 
@@ -187,13 +161,12 @@ export const dbHelpers = {
     }
   },
 
-  // Admin functions
+  // ================= ADMIN =================
   async getAllUsers() {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
       .order('created_at', { ascending: false })
-    
     if (error) throw error
     return data
   },
@@ -213,7 +186,7 @@ export const dbHelpers = {
       totalUsers,
       totalDocuments,
       totalStorage,
-      storageFormatted: this.formatFileSize(totalStorage)
+      storageFormatted: dbHelpers.formatFileSize(totalStorage)
     }
   },
 
