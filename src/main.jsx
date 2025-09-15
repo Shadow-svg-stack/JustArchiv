@@ -8,9 +8,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
-if ("serviceworker" in navigator) {
+if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceworker
+    navigator.serviceWorker
       .register("/serviceworker.js")
       .then(() => console.log("✅ Service Worker enregistré"))
       .catch((err) => console.error("❌ Échec enregistrement SW:", err));
