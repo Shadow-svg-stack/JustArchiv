@@ -2,7 +2,195 @@ import React, { createContext, useContext, useEffect, useState } from "react"
 import { supabase, dbHelpers } from "../lib/supabase"
 import toast from "react-hot-toast"
 
+const AuthCimport React, { createContext, useContext, useEffect, useState } from "react"
+import { supabase, dbHelpers } from "../lib/supabase"
+import toast from "react-hot-toast"
+
 const AuthContext = createContext({})
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error("useAuth must be used within an AuthProvider")
+  return context
+}
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null)
+  const [userProfile, setUserProfile] = useState(null)
+  const [userRole, setUserRole] = useState("reader")
+  const [isActive, setIsActive] = useState(true)
+  const [loading, setLoading] = useState(true)
+
+  // ==================== INITIALISATION ====================
+  useEffect(() => {
+    let mounted = true
+
+    const init = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) console.error("getSession error:", error)
+
+        if (mounted) {
+          setUser(data?.session?.user ?? null)
+          if (data?.session?.user) await loadUserProfile(data.session.user.id)
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err)
+      } finally {
+        setTimeout(() => {
+          if (mounted) setLoading(false)
+        }, 1500)
+      }
+    }
+
+    init()
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null)
+
+        if (session?.user) {
+          await loadUserProfile(session.user.id)
+          if (event === "SIGNED_IN") {
+            await dbHelpers.logActivity(session.user.id, "login")
+            toast.success("Connexion réussie !")
+          }
+        } else {
+          setUserProfile(null)
+          setUserRole("reader")
+          setIsActive(true)
+          if (event === "SIGNED_OUT") toast.success("Déconnexion réussie !")
+        }
+
+        setLoading(false)
+      }
+    )
+
+    return () => subscription?.subscription.unsubscribe()
+  }, [])
+
+  // ==================== CHARGEMENT PROFIL ====================
+  const loadUserProfile = async (userId) => {
+    try {
+      const profile = await dbHelpers.getUserProfile(userId)
+      setUserProfile(profile ?? null)
+      setUserRole(profile?.role ?? "reader")
+      setIsActive(profile?.is_active ?? true)
+    } catch (err) {
+      console.error("Error loading profile:", err)
+      setUserProfile(null)
+      setUserRole("reader")
+      setIsActive(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ==================== DESACTIVATION COMPTE ====================
+  useEffect(() => {
+    if (user && isActive === false) {
+      toast.error("Votre compte a été désactivé par l’administrateur.")
+      supabase.auth.signOut()
+      setUser(null)
+      setUserProfile(null)
+      setUserRole("reader")
+    }
+  }, [user, isActive])
+
+  // ==================== FONCTIONS ====================
+  const signUp = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password })
+      if (error) throw error
+      toast.success("Inscription réussie ! Vérifiez votre email.")
+      return { data, error: null }
+    } catch (error) {
+      toast.error(error.message)
+      return { data: null, error }
+    }
+  }
+
+  const signIn = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      toast.error("Email ou mot de passe incorrect")
+      return { data: null, error }
+    }
+  }
+
+  const signOut = async () => {
+    try {
+      if (user) await dbHelpers.logActivity(user.id, "logout")
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+    } catch (error) {
+      toast.error("Erreur lors de la déconnexion")
+    }
+  }
+
+  const updateProfile = async (updates) => {
+    try {
+      if (!user) throw new Error("Aucun utilisateur connecté")
+      const updatedProfile = await dbHelpers.updateUserProfile(user.id, updates)
+      setUserProfile(updatedProfile)
+      setUserRole(updatedProfile?.role ?? userRole)
+      await dbHelpers.logActivity(user.id, "profile_update", { fields: Object.keys(updates) })
+      toast.success("Profil mis à jour !")
+      return { data: updatedProfile, error: null }
+    } catch (error) {
+      toast.error("Erreur lors de la mise à jour du profil")
+      return { data: null, error }
+    }
+  }
+
+  const changePassword = async (newPassword) => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) throw error
+      await dbHelpers.logActivity(user.id, "password_change")
+      toast.success("Mot de passe modifié !")
+      return { error: null }
+    } catch (error) {
+      toast.error("Erreur lors du changement de mot de passe")
+      return { error }
+    }
+  }
+
+  const deleteAccount = async () => {
+    try {
+      if (!user) throw new Error("Aucun utilisateur connecté")
+      await dbHelpers.logActivity(user.id, "account_deletion")
+      const { error } = await supabase.auth.admin.deleteUser(user.id)
+      if (error) throw error
+      toast.success("Compte supprimé avec succès")
+      return { error: null }
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du compte")
+      return { error }
+    }
+  }
+
+  // ==================== VALEURS CONTEXTE ====================
+  const value = {
+    user,
+    userProfile,
+    userRole,
+    isActive,
+    loading,
+    signUp,
+    signIn,
+    signOut,
+    updateProfile,
+    changePassword,
+    deleteAccount
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
+ontext = createContext({})
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
