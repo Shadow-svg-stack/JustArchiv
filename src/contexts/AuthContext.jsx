@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
-import { supabase, dbHelpers } from "../lib/supabase"
-import * as dbHelpers from "../lib/dbHelpers";
+import { supabase } from "../lib/supabase"
+import * as dbHelpers from "../lib/dbHelpers"
 import toast from "react-hot-toast"
 
 const AuthContext = createContext({})
@@ -38,7 +38,6 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error("AuthProvider unexpected error:", err)
       } finally {
-        // 🔹 Timeout sécurité
         setTimeout(() => {
           if (mounted) setLoading(false)
         }, 2000)
@@ -47,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
     init()
 
-    // Abonnement aux changements d'auth
+    // Écoute les changements de session
     const { data: subscription } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("AuthProvider authStateChange:", event, session)
@@ -71,7 +70,6 @@ export const AuthProvider = ({ children }) => {
       }
     )
 
-    // Timeout de sécurité supplémentaire
     const timer = setTimeout(() => {
       if (mounted) setLoading(false)
     }, 5000)
@@ -122,16 +120,25 @@ export const AuthProvider = ({ children }) => {
       })
       if (error) throw error
 
+      // ✅ Création automatique du profil via trigger si trigger existant
       if (data.user) {
-        await supabase.from("user_profiles").insert({
-          id: data.user.id,
-          email: data.user.email,
-          full_name: userData.full_name,
-          role: "reader"
-        })
+        // Sécurité : ne pas insérer si le trigger gère déjà user_profiles
+        try {
+          const { error: insertError } = await supabase.from("user_profiles").insert({
+            id: data.user.id,
+            email: data.user.email,
+            full_name: userData.full_name,
+            role: "reader"
+          })
+          if (insertError) console.warn("Profile insert skipped (trigger?):", insertError.message)
+        } catch (e) {
+          console.warn("Insert user_profiles skipped (trigger may handle it):", e.message)
+        }
+
         await dbHelpers.logActivity(data.user.id, "register")
         toast.success("Inscription réussie ! Vérifiez votre email.")
       }
+
       return { data, error: null }
     } catch (error) {
       toast.error(error.message)
