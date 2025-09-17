@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
           id: data.user.id,
           email: data.user.email,
           full_name: userData.full_name,
-          role: 'reader' // Default role
+          role: 'admin' // Default role
         })
 
         await dbHelpers.logActivity(data.user.id, 'register')
