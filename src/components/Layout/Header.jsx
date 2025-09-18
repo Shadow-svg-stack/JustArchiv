@@ -1,4 +1,4 @@
-import React from 'react'
+le Header.jsx mtn : import React from 'react'
 import { Menu, Moon, Sun, LogOut, Bell } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -55,4 +55,4 @@ const Header = ({ onMenuToggle, onSidebarToggle }) => {
   )
 }
 
-export default Header
+export default Header   avec cette version le header vient se retrouver en bas ce qui est bizarre essaie de corriger ce probleme aussi 
