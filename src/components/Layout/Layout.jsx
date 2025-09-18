@@ -1,6 +1,10 @@
 
 import React, { useState } from "react";
-import "src/index.css"; // Assurez-vous que ce fichier CSS est importé
+import { Outlet } from 'react-router-dom'
+import Sidebar from './Sidebar'
+import Header from './Header'
+
+
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
