@@ -1,72 +1,41 @@
-import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  FolderOpen, 
-  User, 
-  Settings,
-  ChevronLeft,
-  Crown,
-  Shield
-} from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
+import React from "react"
+import { NavLink } from "react-router-dom"
+import { FileText, FolderOpen, Tag, Settings, Home } from "lucide-react"
 
-const Sidebar = ({ collapsed, mobileOpen, onToggle, onMobileToggle }) => {
-  const { userRole } = useAuth()
+const navItems = [
+  { to: "/dashboard", label: "Dashboard", icon: Home },
+  { to: "/documents", label: "Documents", icon: FileText },
+  { to: "/categories", label: "Catégories", icon: FolderOpen },
+  { to: "/tags", label: "Tags", icon: Tag },
+  { to: "/profile", label: "Profil", icon: Settings },
+]
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: FileText, label: 'Documents', path: '/documents' },
-    { icon: FolderOpen, label: 'Catégories', path: '/categories' },
-    { icon: User, label: 'Profil', path: '/profile' },
-  ]
-
-  if (userRole === 'admin') {
-    menuItems.push({ icon: Shield, label: 'Administration', path: '/admin' })
-  }
-
-  if (userRole === 'headmaster') {
-    menuItems.push({ icon: Crown, label: 'Headmaster', path: '/headmaster' })
-  }
-
+const Sidebar = () => {
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-8">
-          {!collapsed && (
-            <h1 className="text-xl font-semibold text-primary">JustArchiv</h1>
-          )}
-          <button
-            onClick={onToggle}
-            className="btn btn-secondary btn-sm hidden md:flex"
+    <aside className="w-64 bg-primary-600 text-white flex flex-col shadow-smooth">
+      <div className="p-6 text-2xl font-bold tracking-tight">
+        JustArchiv
+      </div>
+      <nav className="flex-1 px-4 space-y-2">
+        {navItems.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive
+                  ? "bg-primary-500 shadow-card"
+                  : "hover:bg-primary-700"
+              }`
+            }
           >
-            <ChevronLeft 
-              size={16} 
-              className={`transition-transform ${collapsed ? 'rotate-180' : ''}`}
-            />
-          </button>
-        </div>
-
-        <nav className="space-y-2">
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={() => onMobileToggle()}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-primary text-white'
-                    : 'text-secondary hover:bg-surface-dark hover:text-primary'
-                } ${collapsed ? 'justify-center' : ''}`
-              }
-            >
-              <item.icon size={20} />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          ))}
-        </nav>
+            <Icon size={20} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </nav>
+      <div className="p-4 text-xs text-primary-100">
+        © {new Date().getFullYear()} JustArchiv
       </div>
     </aside>
   )
