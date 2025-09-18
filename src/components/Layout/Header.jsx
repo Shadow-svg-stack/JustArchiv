@@ -1,55 +1,35 @@
-import React from 'react'
-import { Menu, Moon, Sun, LogOut, Bell } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import { useTheme } from '../../contexts/ThemeContext'
+import React from "react"
+import { Bell, User } from "lucide-react"
+import { useAuth } from "../../contexts/AuthContext"
 
-const Header = ({ onMenuToggle, onSidebarToggle }) => {
-  const { user, userProfile, signOut } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+const Header = () => {
+  const { user, signOut } = useAuth()
 
   return (
-    <header className="bg-surface border-b border-border p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onMenuToggle}
-            className="btn btn-secondary btn-sm md:hidden"
-          >
-            <Menu size={16} />
-          </button>
-          
-          <div className="hidden md:block">
-            <h2 className="text-lg font-medium">
-              Bonjour, {userProfile?.full_name || user?.email}
-            </h2>
-            <p className="text-sm text-secondary">
-              Rôle: {userProfile?.role || 'Utilisateur'}
-            </p>
-          </div>
-        </div>
+    <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6">
+      <h1 className="text-lg font-semibold text-primary-700">
+        Tableau de bord
+      </h1>
+
+      <div className="flex items-center gap-4">
+        <button className="relative p-2 text-gray-600 hover:text-primary-600 transition">
+          <Bell size={20} />
+          <span className="absolute -top-1 -right-1 bg-secondary-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+            3
+          </span>
+        </button>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className="btn btn-secondary btn-sm"
-            title={`Passer au mode ${theme === 'light' ? 'sombre' : 'clair'}`}
-          >
-            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-          </button>
-
-          <button className="btn btn-secondary btn-sm relative">
-            <Bell size={16} />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-error rounded-full text-xs"></span>
-          </button>
-
-          <button
-            onClick={signOut}
-            className="btn btn-danger btn-sm"
-            title="Se déconnecter"
-          >
-            <LogOut size={16} />
-          </button>
+          <User className="text-primary-600" size={20} />
+          <span className="text-sm text-gray-700">{user?.email}</span>
         </div>
+
+        <button
+          onClick={signOut}
+          className="px-3 py-1.5 bg-secondary-500 text-white rounded-lg text-sm hover:bg-secondary-600 transition"
+        >
+          Déconnexion
+        </button>
       </div>
     </header>
   )
