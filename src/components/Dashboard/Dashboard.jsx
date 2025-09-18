@@ -1,16 +1,23 @@
-import React, { useState, useEffect } from 'react'
-import { FileText, FolderOpen, Tag, TrendingUp } from 'lucide-react'
-import { useAuth } from '../../contexts/AuthContext'
-import { dbHelpers } from '../../lib/supabase'
-import LoadingSpinner from '../UI/LoadingSpinner'
+import React, { useState, useEffect } from "react"
+import {
+  DocumentTextIcon,
+  FolderIcon,
+  TagIcon,
+  CloudArrowUpIcon,
+  ClockIcon,
+  UserCircleIcon,
+} from "@heroicons/react/24/outline"
+import { useAuth } from "../../contexts/AuthContext"
+import { dbHelpers } from "../../lib/supabase"
+import LoadingSpinner from "../UI/LoadingSpinner"
 
-const Dashboard = () => {
+export default function Dashboard() {
   const { user } = useAuth()
   const [stats, setStats] = useState({
     documents: 0,
     categories: 0,
     tags: 0,
-    storage: '0 MB'
+    storage: "0 MB",
   })
   const [recentDocuments, setRecentDocuments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -21,28 +28,30 @@ const Dashboard = () => {
 
   const loadDashboardData = async () => {
     if (!user) return
-
     try {
       setLoading(true)
-      
+
       const [documents, categories, tags] = await Promise.all([
         dbHelpers.getUserDocuments(user.id, { limit: 5 }),
         dbHelpers.getUserCategories(user.id),
-        dbHelpers.getUserTags(user.id)
+        dbHelpers.getUserTags(user.id),
       ])
 
-      const totalStorage = documents.reduce((sum, doc) => sum + (doc.file_size || 0), 0)
+      const totalStorage = documents.reduce(
+        (sum, doc) => sum + (doc.file_size || 0),
+        0
+      )
 
       setStats({
         documents: documents.length,
         categories: categories.length,
         tags: tags.length,
-        storage: dbHelpers.formatFileSize(totalStorage)
+        storage: dbHelpers.formatFileSize(totalStorage),
       })
 
       setRecentDocuments(documents.slice(0, 5))
     } catch (error) {
-      console.error('Error loading dashboard data:', error)
+      console.error("Error loading dashboard data:", error)
     } finally {
       setLoading(false)
     }
@@ -54,106 +63,122 @@ const Dashboard = () => {
 
   const statCards = [
     {
-      title: 'Documents',
+      title: "Documents",
       value: stats.documents,
-      icon: FileText,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      icon: DocumentTextIcon,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
     },
     {
-      title: 'Catégories',
+      title: "Catégories",
       value: stats.categories,
-      icon: FolderOpen,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      icon: FolderIcon,
+      color: "text-green-600",
+      bg: "bg-green-50",
     },
     {
-      title: 'Tags',
+      title: "Tags",
       value: stats.tags,
-      icon: Tag,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      icon: TagIcon,
+      color: "text-purple-600",
+      bg: "bg-purple-50",
     },
     {
-      title: 'Stockage',
+      title: "Stockage",
       value: stats.storage,
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
-    }
+      icon: CloudArrowUpIcon,
+      color: "text-orange-600",
+      bg: "bg-orange-50",
+    },
   ]
 
   return (
-    <div className="space-y-6 fade-in">
+    <div className="space-y-8 animate-fadeIn">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold mb-2">Tableau de bord</h1>
-        <p className="text-secondary">Vue d'ensemble de vos documents</p>
+        <h1 className="text-3xl font-bold text-gray-800">Tableau de bord</h1>
+        <p className="text-gray-500">
+          Bienvenue <span className="font-medium">{user?.email}</span>, voici un
+          aperçu de votre activité.
+        </p>
       </div>
 
-      <div className="grid grid-2 md:grid-4 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat) => (
-          <div key={stat.title} className="card hover-scale">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary">{stat.title}</p>
-                <p className="text-2xl font-semibold mt-1">{stat.value}</p>
-              </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={stat.color} size={24} />
-              </div>
+          <div
+            key={stat.title}
+            className="bg-white shadow rounded-xl p-6 flex items-center justify-between hover:shadow-md transition"
+          >
+            <div>
+              <p className="text-sm text-gray-500">{stat.title}</p>
+              <p className="text-2xl font-semibold text-gray-800 mt-1">
+                {stat.value}
+              </p>
+            </div>
+            <div className={`p-3 rounded-lg ${stat.bg}`}>
+              <stat.icon className={`w-6 h-6 ${stat.color}`} />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid md:grid-2 gap-6">
-        <div className="card">
-          <h3 className="text-lg font-medium mb-4">Documents récents</h3>
+      {/* Content: Documents récents + Activité */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Documents récents */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Documents récents
+          </h3>
           {recentDocuments.length > 0 ? (
-            <div className="space-y-3">
+            <ul className="divide-y divide-gray-100">
               {recentDocuments.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 bg-surface-dark rounded-lg">
+                <li
+                  key={doc.id}
+                  className="flex items-center justify-between py-3"
+                >
                   <div>
-                    <p className="font-medium">{doc.name}</p>
-                    <p className="text-sm text-secondary">
-                      {new Date(doc.created_at).toLocaleDateString('fr-FR')}
+                    <p className="font-medium text-gray-700">{doc.name}</p>
+                    <p className="text-sm text-gray-400">
+                      {new Date(doc.created_at).toLocaleDateString("fr-FR")}
                     </p>
                   </div>
-                  <span className="text-xs bg-primary text-white px-2 py-1 rounded">
+                  <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">
                     {doc.file_type}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           ) : (
-            <p className="text-secondary text-center py-8">
+            <p className="text-gray-400 text-center py-6">
               Aucun document récent
             </p>
           )}
         </div>
 
-        <div className="card">
-          <h3 className="text-lg font-medium mb-4">Activité récente</h3>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-surface-dark rounded-lg">
-              <div className="w-2 h-2 bg-success rounded-full"></div>
+        {/* Activité récente */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Activité récente
+          </h3>
+          <ul className="space-y-4">
+            <li className="flex items-start gap-3">
+              <ClockIcon className="w-5 h-5 text-green-500 mt-1" />
               <div>
-                <p className="text-sm">Connexion réussie</p>
-                <p className="text-xs text-secondary">Il y a quelques minutes</p>
+                <p className="text-sm text-gray-700">Connexion réussie</p>
+                <p className="text-xs text-gray-400">Il y a quelques minutes</p>
               </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-surface-dark rounded-lg">
-              <div className="w-2 h-2 bg-primary rounded-full"></div>
+            </li>
+            <li className="flex items-start gap-3">
+              <UserCircleIcon className="w-5 h-5 text-indigo-500 mt-1" />
               <div>
-                <p className="text-sm">Profil mis à jour</p>
-                <p className="text-xs text-secondary">Aujourd'hui</p>
+                <p className="text-sm text-gray-700">Profil mis à jour</p>
+                <p className="text-xs text-gray-400">Aujourd'hui</p>
               </div>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
   )
 }
-
-export default Dashboard
