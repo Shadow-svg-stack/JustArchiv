@@ -1,0 +1,122 @@
+/* ===============================
+   Global CSS pour la PWA SaaS responsive
+   =============================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-bg: #f8fafc;
+  --color-bg-card: #ffffff;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-primary: #6366f1;
+  --color-secondary: #0ea5a4;
+  --color-border: #e2e8f0;
+  --radius: 0.75rem;
+  --transition: 0.2s ease-in-out;
+}
+
+.dark {
+  --color-bg: #0f172a;
+  --color-bg-card: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-border: #334155;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--color-bg-card);
+  border-right: 1px solid var(--color-border);
+  min-height: 100vh;
+  padding: 1rem 0.5rem;
+  width: 220px;
+  transition: width var(--transition);
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  color: var(--color-text);
+  font-weight: 500;
+  transition: background var(--transition), color var(--transition);
+}
+
+.sidebar a:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Icône seule en mobile */
+.sidebar-icon {
+  font-size: 1.2rem;
+  display: inline-flex;
+}
+
+/* Label du menu */
+.sidebar-label {
+  white-space: nowrap;
+}
+
+/* Header */
+.header {
+  background: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Contenu principal */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+/* Responsive rules */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 60px;
+    padding: 1rem 0.25rem;
+  }
+  .sidebar a {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+  .sidebar-label {
+    display: none;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+}
