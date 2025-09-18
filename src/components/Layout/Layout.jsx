@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import "./index.css"; // Assurez-vous que ce fichier CSS est importé
+import "src/index.css"; // Assurez-vous que ce fichier CSS est importé
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
