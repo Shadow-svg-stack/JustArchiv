@@ -1,0 +1,51 @@
+{
+  "name": "JustArchiv - Gestion Documentaire",
+  "short_name": "JustArchiv",
+  "description": "Application web complète de gestion documentaire avec PWA, authentification sécurisée et dashboard de maintenance.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#030213",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Télécharger un document",
+      "short_name": "Upload",
+      "description": "Télécharger un nouveau document",
+      "url": "/?action=upload",
+      "icons": [
+        {
+          "src": "/icons/upload-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Mes documents",
+      "short_name": "Documents",
+      "description": "Voir mes documents",
+      "url": "/?tab=documents",
+      "icons": [
+        {
+          "src": "/icons/docs-96.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}

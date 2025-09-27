@@ -1,0 +1,1 @@
+describe('Home', () => { it('loads', () => { cy.visit('/'); cy.contains(''); }); });

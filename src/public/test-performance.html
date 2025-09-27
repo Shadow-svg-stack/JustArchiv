@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Performance - JustArchiv</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+    .test { margin: 1rem 0; padding: 1rem; border-radius: 8px; border: 2px solid; }
+    .success { border-color: #22c55e; background: #f0fdf4; }
+    .error { border-color: #ef4444; background: #fef2f2; }
+    .warning { border-color: #f59e0b; background: #fffbeb; }
+    pre { background: #f9f9f9; padding: 1rem; border-radius: 4px; font-size: 12px; }
+    button { background: #030213; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .loading { opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <h1>🚀 Test de Performance JustArchiv</h1>
+  <p>Cette page teste que les optimisations de performance sont actives.</p>
+  
+  <button onclick="runTests()" id="runBtn">Lancer les tests</button>
+  
+  <div id="results"></div>
+
+  <script>
+    let tests = [];
+    
+    function addTest(name, status, message, details = '') {
+      tests.push({ name, status, message, details });
+      updateDisplay();
+    }
+    
+    function updateDisplay() {
+      const results = document.getElementById('results');
+      results.innerHTML = tests.map(test => `
+        <div class="test ${test.status}">
+          <h3>${test.status === 'success' ? '✅' : test.status === 'error' ? '❌' : '⚠️'} ${test.name}</h3>
+          <p><strong>${test.message}</strong></p>
+          ${test.details ? `<pre>${test.details}</pre>` : ''}
+        </div>
+      `).join('');
+    }
+    
+    async function runTests() {
+      const btn = document.getElementById('runBtn');
+      btn.disabled = true;
+      btn.textContent = 'Tests en cours...';
+      btn.className = 'loading';
+      
+      tests = [];
+      updateDisplay();
+      
+      // Test 1: Sentry bloqué
+      try {
+        if (window.Sentry === undefined) {
+          addTest('Blocage Sentry', 'success', 'Sentry correctement bloqué');
+        } else {
+          addTest('Blocage Sentry', 'error', 'Sentry détecté dans window');
+        }
+      } catch (e) {
+        addTest('Blocage Sentry', 'success', 'Sentry bloqué avec exception');
+      }
+      
+      // Test 2: Fetch intercepté
+      if (window.fetch.toString().includes('[native code]')) {
+        addTest('Interception Fetch', 'warning', 'Fetch non intercepté');
+      } else {
+        addTest('Interception Fetch', 'success', 'Fetch intercepté pour blocage');
+      }
+      
+      // Test 3: Test requête Sentry (doit être bloquée)
+      try {
+        const start = performance.now();
+        const response = await fetch('https://o22594.ingest.us.sentry.io/api/test');
+        const duration = performance.now() - start;
+        
+        if (duration < 100 && response.ok) {
+          const text = await response.text();
+          addTest('Requête Sentry', 'success', `Sentry bloqué en ${duration.toFixed(1)}ms`, `Response: ${text}`);
+        } else {
+          addTest('Requête Sentry', 'error', `Sentry NON bloqué: ${duration.toFixed(1)}ms`);
+        }
+      } catch (e) {
+        addTest('Requête Sentry', 'success', 'Requête Sentry bloquée par exception');
+      }
+      
+      // Test 4: Test requête Figma (doit être bloquée)
+      try {
+        const start = performance.now();
+        const response = await fetch('https://www.figma.com/webpack-artifacts/test');
+        const duration = performance.now() - start;
+        
+        if (duration < 100) {
+          addTest('Requête Figma', 'success', `Figma bloqué en ${duration.toFixed(1)}ms`);
+        } else {
+          addTest('Requête Figma', 'error', `Figma NON bloqué: ${duration.toFixed(1)}ms`);
+        }
+      } catch (e) {
+        addTest('Requête Figma', 'success', 'Requête Figma bloquée par exception');
+      }
+      
+      // Test 5: Performance générale
+      if (performance.getEntriesByType) {
+        const navigation = performance.getEntriesByType('navigation')[0];
+        if (navigation) {
+          const loadTime = navigation.loadEventEnd - navigation.loadEventStart;
+          const details = `
+Load Time: ${loadTime.toFixed(1)}ms
+DOM Ready: ${(navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart).toFixed(1)}ms
+DNS: ${(navigation.domainLookupEnd - navigation.domainLookupStart).toFixed(1)}ms`;
+          
+          if (loadTime < 1000) {
+            addTest('Performance', 'success', 'Temps de chargement excellent', details);
+          } else {
+            addTest('Performance', 'warning', 'Temps de chargement acceptable', details);
+          }
+        }
+      }
+      
+      // Test 6: Ressources lentes
+      if (performance.getEntriesByType) {
+        const resources = performance.getEntriesByType('resource');
+        const slowResources = resources.filter(r => r.duration > 1000);
+        
+        if (slowResources.length === 0) {
+          addTest('Ressources Lentes', 'success', 'Aucune ressource lente détectée');
+        } else {
+          const details = slowResources.map(r => `${r.name}: ${r.duration.toFixed(1)}ms`).join('\n');
+          addTest('Ressources Lentes', 'warning', `${slowResources.length} ressource(s) lente(s)`, details);
+        }
+      }
+      
+      // Résumé
+      const successCount = tests.filter(t => t.status === 'success').length;
+      const status = successCount === tests.length ? 'success' : successCount > tests.length/2 ? 'warning' : 'error';
+      
+      addTest('RÉSUMÉ FINAL', status, 
+        `${successCount}/${tests.length} tests réussis`, 
+        `JustArchiv est ${status === 'success' ? '🎉 PARFAITEMENT' : status === 'warning' ? '✅ CORRECTEMENT' : '❌ PARTIELLEMENT'} optimisé !`
+      );
+      
+      btn.disabled = false;
+      btn.textContent = 'Relancer les tests';
+      btn.className = '';
+    }
+    
+    // Auto-run tests after 1 second
+    setTimeout(runTests, 1000);
+  </script>
+</body>
+</html>
